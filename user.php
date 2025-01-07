@@ -1,67 +1,50 @@
 <?php
-require_once 'Database.php'; // Include the Database class
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+require_once 'Database.php';
 
-class User {
-    private $conn;
+class User
+{
+    private $db;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
-        $this->conn = $database->connect();
+        $this->db = $database->connect();
     }
 
-    // Login method
-    public function login($email, $password) {
-        $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':email' => $email]);
+    public function register($username, $email, $password)
+    {
+        $errors = [];
 
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['password_hash'])) {
-            // Generate and send the 2FA code
-            $this->send2FACode($email);
-            return "Login successful! A 2FA code has been sent to your email.";
-        } else {
-            return ["Invalid email or password."];
+        // Validate inputs
+        if (empty($username)) {
+            $errors[] = "Username is required.";
         }
-    }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Invalid email format.";
+        }
+        if (strlen($password) < 6) {
+            $errors[] = "Password must be at least 6 characters long.";
+        }
 
-    // Send 2FA code via email
-    public function send2FACode($email) {
-        // Generate a random 6-digit code
-        $code = mt_rand(100000, 999999);
+        if (!empty($errors)) {
+            return $errors;
+        }
 
-        // Store the code temporarily in the session (or database for security)
-        session_start();
-        $_SESSION['2fa_code'] = $code;
-        $_SESSION['2fa_email'] = $email;
+        // Hash the password
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        // Send the code via email using PHPMailer
-        $mail = new PHPMailer(true);
+        // Insert into the database
         try {
-            //Server settings
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com'; // Use your email provider's SMTP server
-            $mail->SMTPAuth = true;
-            $mail->Username = 'your_email@gmail.com'; // Your email address
-            $mail->Password = 'your_email_password'; // Your email password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
+            $query = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':username', $username);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':password', $hashedPassword);
+            $stmt->execute();
 
-            //Recipients
-            $mail->setFrom('your_email@gmail.com', 'Your Name');
-            $mail->addAddress($email); // Recipient's email address
-
-            // Content
-            $mail->isHTML(true);
-            $mail->Subject = 'Your 2FA Code';
-            $mail->Body    = "Your 2FA code is: <strong>$code</strong>";
-
-            $mail->send();
-        } catch (Exception $e) {
-            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            return "Registration successful!";
+        } catch (PDOException $e) {
+            return ["Registration failed: " . $e->getMessage()];
         }
     }
 }
