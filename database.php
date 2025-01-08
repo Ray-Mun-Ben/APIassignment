@@ -12,10 +12,15 @@ class Database
     {
         if ($this->pdo === null) {
             try {
-                $this->pdo = new PDO("mysql:host={$this->host};dbname={$this->dbname}", $this->username, $this->password);
+                $this->pdo = new PDO(
+                    "mysql:host={$this->host};dbname={$this->dbname};charset=utf8mb4",
+                    $this->username,
+                    $this->password
+                );
                 $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $e) {
-                die("Database connection failed: " . $e->getMessage());
+                error_log("Database connection failed: " . $e->getMessage(), 3, 'error_log.log');
+                die("Database connection error. Please try again later.");
             }
         }
         return $this->pdo;

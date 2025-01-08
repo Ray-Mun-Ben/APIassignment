@@ -1,7 +1,8 @@
 <?php
-require_once 'vendor/autoload.php';  
-require_once 'Database.php';
-require_once 'User.php';
+session_start();
+require_once 'vendor/autoload.php';
+require_once 'database.php';
+require_once 'user.php';
 require_once 'mailer.php';
 
 $errorMessage = "";
@@ -11,8 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'];
+    $csrf_token = $_POST['csrf_token'];
 
-    if (empty($username) || empty($email) || empty($password)) {
+    // CSRF Token Validation
+    if ($csrf_token !== $_SESSION['csrf_token']) {
+        $errorMessage = "Invalid CSRF token!";
+    } elseif (empty($username) || empty($email) || empty($password)) {
         $errorMessage = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errorMessage = "Please provide a valid email address.";
@@ -23,14 +28,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $database = new Database();
             $pdo = $database->connect();
             $user = new User($pdo);
-            $result = $user->register($username, $email, $password);
+            // Register the user and get the user_id
+            $userId = $user->register($username, $email, $password);
 
-            if ($result === "Registration successful.") {
-                $twoFACode = rand(100000, 999999);
-                session_start();
+            if ($userId) {
+                // Store the user_id in the session
+                $_SESSION['user_id'] = $userId;
+
+                // Generate 2FA code securely
+                $twoFACode = random_int(100000, 999999);
                 $_SESSION['2fa_code'] = $twoFACode;
                 $_SESSION['email'] = $email;
 
+                // Save OTP to the database
+                $user->saveOTP($userId, $twoFACode); // Use the user_id here
+
+                // Send 2FA code via email
                 if (send2FACode($email, $twoFACode)) {
                     header("Location: verify2fa.php");
                     exit();
@@ -38,13 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errorMessage = "Failed to send 2FA code.";
                 }
             } else {
-                $errorMessage = implode('<br>', $result);
+                $errorMessage = "Registration failed.";
             }
         } catch (Exception $e) {
             $errorMessage = "An error occurred: " . $e->getMessage();
         }
     }
 }
+
+// Generate CSRF Token
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 ?>
 
 <!DOCTYPE html>
@@ -64,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="register.php">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" name="username" id="username" class="form-control" required>

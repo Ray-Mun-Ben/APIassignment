@@ -1,13 +1,13 @@
 <?php
 session_start();
-require_once 'Database.php';
-require_once 'User.php';
+require_once 'database.php';
+require_once 'user.php';
 
 $errors = [];
 $successMessage = "";
 
 // Ensure the user is coming from the registration flow
-if (!isset($_SESSION['email']) || !isset($_SESSION['2fa_code'])) {
+if (!isset($_SESSION['email'])) {
     header('Location: register.php'); // Redirect to registration if session is invalid
     exit();
 }
@@ -18,18 +18,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($code)) {
         $errors[] = "Verification code is required.";
-    } elseif ($code !== $_SESSION['2fa_code']) {
-        $errors[] = "Invalid verification code.";
     } else {
-        // Verification successful
-        $successMessage = "2FA verified successfully!";
+        // Check OTP in the database
+        $database = new Database();
+        $pdo = $database->connect();
+        $user = new User($pdo);
 
-        // Optional: Clear 2FA session variables
-        unset($_SESSION['2fa_code']);
+        // Fetch user ID based on email from the session
+        $userId = $user->getUserIdByEmail($_SESSION['email']);
 
-        // Redirect to the dashboard
-        header('Location: dashboard.php');
-        exit();
+        if ($userId && $user->verifyOTP($userId, $code)) {
+            // OTP verified successfully
+            $_SESSION['user_id'] = $userId;
+
+            $successMessage = "2FA verified successfully! Redirecting to your dashboard...";
+            header('Location: dashboard.php');
+            exit();
+        } else {
+            $errors[] = "Invalid or expired verification code.";
+        }
     }
 }
 ?>

@@ -1,63 +1,76 @@
 <?php
+require_once 'database.php';
 
-class User
-{
+class User {
     private $pdo;
-
-    public function __construct($pdo)
-    {
+    
+    public function __construct($pdo) {
         $this->pdo = $pdo;
     }
 
-    public function register($username, $email, $password)
-    {
-        $errors = [];
+    // Method to register a new user
+    public function register($username, $email, $password) {
+        $stmt = $this->pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :password_hash)");
+        $stmt->execute([
+            ':username' => $username,
+            ':email' => $email,
+            ':password_hash' => password_hash($password, PASSWORD_BCRYPT)
+        ]);
+    
+        // Get the user ID of the newly registered user
+        $userId = $this->pdo->lastInsertId();
+        
+        // Return the user ID for session
+        return $userId;
+    }
+    
 
-        // Input validation
-        if (empty($username)) {
-            $errors[] = "Username is required.";
-        }
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Valid email is required.";
-        }
-        if (empty($password) || strlen($password) < 8) {
-            $errors[] = "Password must be at least 8 characters long.";
-        }
-        if (!empty($errors)) {
-            return $errors;
+    // Method to login user
+    public function login($email, $password) {
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            return true;
         }
 
-        // Hash password
-        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-
-        try {
-            $query = "INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :password_hash)";
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute([
-                ':username' => $username,
-                ':email' => $email,
-                ':password_hash' => $passwordHash,
-            ]);
-            return "Registration successful.";
-        } catch (PDOException $e) {
-            if ($e->getCode() === '23000') { // Duplicate entry
-                return ["Email is already registered."];
-            }
-            return ["An error occurred: " . $e->getMessage()];
-        }
+        return false;
     }
 
-    public function login($email, $password)
-    {
-        $query = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute([':email' => $email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Save OTP to the database
+    public function saveOTP($userId, $otpCode) {
+        $stmt = $this->pdo->prepare("INSERT INTO otps (user_id, otp_code, expiration_time) VALUES (:user_id, :otp_code, DATE_ADD(NOW(), INTERVAL 10 MINUTE))");
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':otp_code' => $otpCode
+        ]);
+    }
 
-        if ($user && password_verify($password, $user['password_hash'])) {
-            return true; // Login successful
+    // Verify OTP from the database
+    public function verifyOTP($userId, $otpCode) {
+        $stmt = $this->pdo->prepare("SELECT * FROM otps WHERE user_id = :user_id AND otp_code = :otp_code AND is_used = FALSE AND expiration_time > NOW()");
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':otp_code' => $otpCode
+        ]);
+
+        $otp = $stmt->fetch();
+
+        if ($otp) {
+            // Mark the OTP as used
+            $stmt = $this->pdo->prepare("UPDATE otps SET is_used = TRUE WHERE id = :id");
+            $stmt->execute([':id' => $otp['id']]);
+            return true;
         }
-        return false; // Login failed
+
+        return false;
+    }
+    
+    // Get user ID (for OTP saving and verification)
+    public function getUserId() {
+        return $_SESSION['user_id'];
     }
 }
 ?>
