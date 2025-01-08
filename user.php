@@ -23,6 +23,29 @@ class User {
         // Return the user ID for session
         return $userId;
     }
+
+
+    public function getUserIdByEmail($email) {
+        $query = "SELECT id FROM users WHERE email = :email LIMIT 1";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute([':email' => $email]);
+        $result = $stmt->fetch();
+    
+        return $result ? $result['id'] : null;
+    }
+    
+    public function getUsernameById($userId) {
+        try {
+            $query = "SELECT username FROM users WHERE id = :id LIMIT 1";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute([':id' => $userId]);
+            $result = $stmt->fetch();
+    
+            return $result ? $result['username'] : 'Guest';
+        } catch (PDOException $e) {
+            return 'Guest'; // Fallback in case of an error
+        }
+    }
     
 
     // Method to login user
@@ -31,7 +54,7 @@ class User {
         $stmt->execute([':email' => $email]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id'];
             return true;
         }
