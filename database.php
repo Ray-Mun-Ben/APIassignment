@@ -3,7 +3,7 @@
 class Database
 {
     private $host = 'localhost';
-    private $dbname = 'theuserDB';
+    private $dbname = 'theuserDB'; // Adjust to your database name
     private $username = 'root';
     private $password = '';
     private $pdo;

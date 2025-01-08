@@ -1,28 +1,25 @@
 <?php
-session_start();
-require_once 'vendor/autoload.php';
-require_once 'User.php'; // Include the User class file
+require_once 'Database.php';
+require_once 'User.php';
 
-$errors = [];
+$errorMessage = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'];
 
-    $user = new User();
-    $result = $user->login($email, $password);
+    $database = new Database();
+    $pdo = $database->connect();
 
-    if (is_array($result)) {
-        $errors = $result; // Show validation errors if any
+    $user = new User($pdo);
+    if ($user->login($email, $password)) {
+        echo "Login successful!";
+        // Redirect or start session
     } else {
-        // Send the 2FA verification email
-        $user->send2FACode($email);
-        header('Location: verify2fa.php'); // Redirect to 2FA verification page
-        exit();
+        $errorMessage = "Invalid email or password.";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,17 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container mt-5">
         <h2>Login</h2>
 
-        <?php if (!empty($errors)): ?>
+        <?php if (!empty($errorMessage)): ?>
             <div class="alert alert-danger">
-                <ul>
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
+                <?php echo htmlspecialchars($errorMessage); ?>
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="">
+        <form method="POST" action="login.php">
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" name="email" class="form-control" required>

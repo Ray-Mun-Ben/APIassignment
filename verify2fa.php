@@ -1,21 +1,35 @@
 <?php
 session_start();
-require_once 'vendor/autoload.php';
+require_once 'Database.php';
 require_once 'User.php';
 
 $errors = [];
 $successMessage = "";
 
+// Ensure the user is coming from the registration flow
+if (!isset($_SESSION['email']) || !isset($_SESSION['2fa_code'])) {
+    header('Location: register.php'); // Redirect to registration if session is invalid
+    exit();
+}
+
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $code = $_POST['code'];
-    $user = new User();
-    
-    if ($user->verify2FACode($code)) {
-        $successMessage = "2FA verified successfully!";
-        header('Location: dashboard.php'); // Redirect to the dashboard after success
-        exit();
-    } else {
+    $code = trim($_POST['code']);
+
+    if (empty($code)) {
+        $errors[] = "Verification code is required.";
+    } elseif ($code !== $_SESSION['2fa_code']) {
         $errors[] = "Invalid verification code.";
+    } else {
+        // Verification successful
+        $successMessage = "2FA verified successfully!";
+
+        // Optional: Clear 2FA session variables
+        unset($_SESSION['2fa_code']);
+
+        // Redirect to the dashboard
+        header('Location: dashboard.php');
+        exit();
     }
 }
 ?>
@@ -37,6 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <li><?php echo htmlspecialchars($error); ?></li>
                     <?php endforeach; ?>
                 </ul>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($successMessage)): ?>
+            <div class="alert alert-success">
+                <?php echo htmlspecialchars($successMessage); ?>
             </div>
         <?php endif; ?>
 

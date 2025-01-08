@@ -1,51 +1,63 @@
 <?php
-require_once 'Database.php';
 
 class User
 {
-    private $db;
+    private $pdo;
 
-    public function __construct()
+    public function __construct($pdo)
     {
-        $database = new Database();
-        $this->db = $database->connect();
+        $this->pdo = $pdo;
     }
 
     public function register($username, $email, $password)
     {
         $errors = [];
 
-        // Validate inputs
+        // Input validation
         if (empty($username)) {
             $errors[] = "Username is required.";
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Invalid email format.";
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = "Valid email is required.";
         }
-        if (strlen($password) < 6) {
-            $errors[] = "Password must be at least 6 characters long.";
+        if (empty($password) || strlen($password) < 8) {
+            $errors[] = "Password must be at least 8 characters long.";
         }
-
         if (!empty($errors)) {
             return $errors;
         }
 
-        // Hash the password
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+        // Hash password
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insert into the database
         try {
-            $query = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
-            $stmt = $this->db->prepare($query);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':password', $hashedPassword);
-            $stmt->execute();
-
-            return "Registration successful!";
+            $query = "INSERT INTO users (username, email, password_hash) VALUES (:username, :email, :password_hash)";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute([
+                ':username' => $username,
+                ':email' => $email,
+                ':password_hash' => $passwordHash,
+            ]);
+            return "Registration successful.";
         } catch (PDOException $e) {
-            return ["Registration failed: " . $e->getMessage()];
+            if ($e->getCode() === '23000') { // Duplicate entry
+                return ["Email is already registered."];
+            }
+            return ["An error occurred: " . $e->getMessage()];
         }
+    }
+
+    public function login($email, $password)
+    {
+        $query = "SELECT * FROM users WHERE email = :email";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute([':email' => $email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            return true; // Login successful
+        }
+        return false; // Login failed
     }
 }
 ?>
