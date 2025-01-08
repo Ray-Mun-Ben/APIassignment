@@ -7,14 +7,28 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Fetch the user's name
 require_once 'Database.php';
 require_once 'User.php';
 
 $database = new Database();
 $pdo = $database->connect();
 $user = new User($pdo);
-$username = $user->getUsernameById($_SESSION['user_id']); // Fetch the username
+
+// Fetch all users
+$users = $user->getAllUsers();
+
+// Handle user deletion
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
+    $userIdToDelete = $_POST['delete_user_id'];
+    if ($user->deleteUserById($userIdToDelete)) {
+        header('Location: dashboard.php'); // Refresh the page
+        exit();
+    } else {
+        $deleteError = "Failed to delete user.";
+    }
+}
+
+$username = $user->getUsernameById($_SESSION['user_id']);
 ?>
 
 <!DOCTYPE html>
@@ -49,6 +63,41 @@ $username = $user->getUsernameById($_SESSION['user_id']); // Fetch the username
     <!-- Welcome Section -->
     <div class="container text-center mt-5">
         <h1>Welcome, <?php echo htmlspecialchars($username); ?>!</h1>
+    </div>
+
+    <!-- Users Table -->
+    <div class="container mt-5">
+        <h2>Registered Users</h2>
+
+        <?php if (isset($deleteError)): ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($deleteError); ?></div>
+        <?php endif; ?>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($users as $userRow): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($userRow['id']); ?></td>
+                        <td><?php echo htmlspecialchars($userRow['username']); ?></td>
+                        <td><?php echo htmlspecialchars($userRow['email']); ?></td>
+                        <td>
+                            <form method="POST" action="">
+                                <input type="hidden" name="delete_user_id" value="<?php echo htmlspecialchars($userRow['id']); ?>">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>

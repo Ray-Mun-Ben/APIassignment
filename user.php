@@ -34,6 +34,29 @@ class User {
         return $result ? $result['id'] : null;
     }
     
+    public function getAllUsers() {
+        try {
+            $query = "SELECT id, username, email FROM users";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+    
+    public function deleteUserById($userId) {
+        try {
+            $query = "DELETE FROM users WHERE id = :id";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute([':id' => $userId]);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+    
+
     public function getUsernameById($userId) {
         try {
             $query = "SELECT username FROM users WHERE id = :id LIMIT 1";
