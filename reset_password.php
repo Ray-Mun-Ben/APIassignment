@@ -1,43 +1,41 @@
 <?php
-session_start();
 require_once 'database.php';
 require_once 'user.php';
 
-$error = "";
-$success = "";
+session_start();
+$pdo = Database::getConnection();
+$user = new User($pdo);
 
-if (!$_SESSION['verified_reset']) {
-    header('Location: forgot_password.php');
-    exit();
+$code = $_GET['code'] ?? null;
+$email = $_GET['email'] ?? null;
+
+// Check if the code and email are valid
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $code && $email) {
+    $userId = $user->getUserIdByEmail($email);
+    
+    if ($userId && $user->verifyOTP($userId, $code)) {
+        // Show the reset password form
+        echo '
+            <form method="POST">
+                <label>New Password:</label>
+                <input type="password" name="new_password" required>
+                <button type="submit">Reset Password</button>
+            </form>
+        ';
+    } else {
+        echo "Invalid or expired reset link.";
+    }
 }
 
+// Handle the password reset
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $password = $_POST['password'];
-
-    if (empty($password) || !preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-        $error = "Password must be at least 8 characters, with uppercase, number, and special character.";
-    } else {
-        $database = new Database();
-        $pdo = $database->connect();
-        $user = new User($pdo);
-        $email = $_SESSION['reset_email'];
-
-        if ($user->updatePassword($user->getUserIdByEmail($email), $password)) {
-            unset($_SESSION['reset_email'], $_SESSION['verified_reset']);
-            $success = "Password updated successfully! Redirecting to login...";
-            header("refresh:3;url=login.php");
+    $newPassword = $_POST['new_password'] ?? null;
+    if ($newPassword && $userId) {
+        if ($user->updatePassword($userId, $newPassword)) {
+            echo "Password has been reset successfully. <a href='login.php'>Login here</a>";
         } else {
-            $error = "Failed to update password.";
+            echo "Failed to reset password. Please try again.";
         }
     }
 }
 ?>
-
-<!-- HTML Form -->
-<form method="POST" action="">
-    <label for="password">Enter your new password:</label>
-    <input type="password" name="password" required>
-    <button type="submit">Reset Password</button>
-</form>
-<?php if ($error): ?><p><?php echo $error; ?></p><?php endif; ?>
-<?php if ($success): ?><p><?php echo $success; ?></p><?php endif; ?>

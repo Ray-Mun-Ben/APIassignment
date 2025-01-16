@@ -17,59 +17,45 @@ class User {
             ':password_hash' => password_hash($password, PASSWORD_BCRYPT)
         ]);
     
-        // Get the user ID of the newly registered user
-        $userId = $this->pdo->lastInsertId();
-        
-        // Return the user ID for session
-        return $userId;
+        return $this->pdo->lastInsertId(); // Return the user ID for session
     }
 
+    // Check if email exists
+    public function emailExists($email) {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        return $stmt->fetchColumn() > 0;
+    }
 
+    // Get user ID by email
     public function getUserIdByEmail($email) {
-        $query = "SELECT id FROM users WHERE email = :email LIMIT 1";
-        $stmt = $this->pdo->prepare($query);
+        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
         $stmt->execute([':email' => $email]);
         $result = $stmt->fetch();
-    
         return $result ? $result['id'] : null;
     }
-    
-    public function getAllUsers() {
-        try {
-            $query = "SELECT id, username, email FROM users";
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            return [];
-        }
-    }
-    
-    public function deleteUserById($userId) {
-        try {
-            $query = "DELETE FROM users WHERE id = :id";
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute([':id' => $userId]);
-            return $stmt->rowCount() > 0;
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
-    
 
-    public function getUsernameById($userId) {
-        try {
-            $query = "SELECT username FROM users WHERE id = :id LIMIT 1";
-            $stmt = $this->pdo->prepare($query);
-            $stmt->execute([':id' => $userId]);
-            $result = $stmt->fetch();
-    
-            return $result ? $result['username'] : 'Guest';
-        } catch (PDOException $e) {
-            return 'Guest'; // Fallback in case of an error
-        }
+    // Get all users
+    public function getAllUsers() {
+        $stmt = $this->pdo->prepare("SELECT id, username, email FROM users");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
+    // Delete user by ID
+    public function deleteUserById($userId) {
+        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
+        $stmt->execute([':id' => $userId]);
+        return $stmt->rowCount() > 0;
+    }
+
+    // Get username by ID
+    public function getUsernameById($userId) {
+        $stmt = $this->pdo->prepare("SELECT username FROM users WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $userId]);
+        $result = $stmt->fetch();
+        return $result ? $result['username'] : 'Guest';
+    }
 
     // Method to login user
     public function login($email, $password) {
@@ -105,7 +91,6 @@ class User {
         $otp = $stmt->fetch();
 
         if ($otp) {
-            // Mark the OTP as used
             $stmt = $this->pdo->prepare("UPDATE otps SET is_used = TRUE WHERE id = :id");
             $stmt->execute([':id' => $otp['id']]);
             return true;
@@ -113,10 +98,20 @@ class User {
 
         return false;
     }
-    
+
+    // Update password
+    public function updatePassword($userId, $newPassword) {
+        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = :password_hash WHERE id = :id");
+        $stmt->execute([
+            ':password_hash' => $hashedPassword,
+            ':id' => $userId
+        ]);
+        return $stmt->rowCount() > 0;
+    }
+
     // Get user ID (for OTP saving and verification)
     public function getUserId() {
         return $_SESSION['user_id'];
     }
 }
-?>
