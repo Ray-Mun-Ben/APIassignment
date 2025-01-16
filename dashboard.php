@@ -18,13 +18,20 @@ $user = new User($pdo);
 $users = $user->getAllUsers();
 
 // Handle user deletion
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
-    $userIdToDelete = $_POST['delete_user_id'];
-    if ($user->deleteUserById($userIdToDelete)) {
-        header('Location: dashboard.php'); // Refresh the page
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['delete_user_id'])) {
+        $userIdToDelete = $_POST['delete_user_id'];
+        if ($user->deleteUserById($userIdToDelete)) {
+            header('Location: dashboard.php'); // Refresh the page
+            exit();
+        } else {
+            $deleteError = "Failed to delete user.";
+        }
+    } elseif (isset($_POST['sign_out'])) {
+        // Handle sign out
+        session_destroy();
+        header('Location: index.php'); // Redirect to landing page
         exit();
-    } else {
-        $deleteError = "Failed to delete user.";
     }
 }
 
@@ -54,6 +61,11 @@ $username = $user->getUsernameById($_SESSION['user_id']);
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="login.php">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <form method="POST" action="">
+                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                        </form>
                     </li>
                 </ul>
             </div>
