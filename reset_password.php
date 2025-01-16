@@ -3,16 +3,21 @@ require_once 'database.php';
 require_once 'user.php';
 
 session_start();
-$pdo = Database::getConnection();
+
+// Get the database connection
+$database = new Database();
+$pdo = $database->getConnection();
 $user = new User($pdo);
 
 $code = $_GET['code'] ?? null;
 $email = $_GET['email'] ?? null;
 
+$userId = null; // Define $userId outside the conditions to prevent "undefined" errors
+
 // Check if the code and email are valid
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $code && $email) {
     $userId = $user->getUserIdByEmail($email);
-    
+
     if ($userId && $user->verifyOTP($userId, $code)) {
         // Show the reset password form
         echo '
@@ -28,11 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $code && $email) {
 }
 
 // Handle the password reset
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $userId) {
     $newPassword = $_POST['new_password'] ?? null;
-    if ($newPassword && $userId) {
+    
+    if ($newPassword) {
         if ($user->updatePassword($userId, $newPassword)) {
-            echo "Password has been reset successfully. <a href='login.php'>Login here</a>";
+            echo "Password has been reset successfully. Redirecting to login page...";
+            
+            // Redirect to index.php after a short delay
+            header("refresh:3;url=index.php");
+            exit; // Make sure the script stops after the redirect
         } else {
             echo "Failed to reset password. Please try again.";
         }

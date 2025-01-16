@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user->saveOTP($userId, $resetCode);
 
             // Create the reset link
-            $resetLink = "http://mysite.local/assignment/reset_password.php?code=$resetCode";
+            $resetLink = "http://localhost/assignment/reset_password.php?email=$email&code=$resetCode";
 
             // Send the reset link via email
             if (send2FACode($email, "Click the following link to reset your password: $resetLink")) {

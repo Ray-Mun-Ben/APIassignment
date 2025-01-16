@@ -79,6 +79,7 @@ class User {
             ':otp_code' => $otpCode
         ]);
     }
+    
 
     // Verify OTP from the database
     public function verifyOTP($userId, $otpCode) {
@@ -99,16 +100,19 @@ class User {
         return false;
     }
 
-    // Update password
-    public function updatePassword($userId, $newPassword) {
-        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = :password_hash WHERE id = :id");
-        $stmt->execute([
-            ':password_hash' => $hashedPassword,
-            ':id' => $userId
-        ]);
-        return $stmt->rowCount() > 0;
-    }
+    public function updatePassword($userId, $newPassword)
+{
+    $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
+    $stmt = $this->pdo->prepare("UPDATE users SET password_hash = :password_hash WHERE id = :user_id");
+    $stmt->execute([
+        ':password_hash' => $passwordHash,
+        ':user_id' => $userId
+    ]);
+    
+    return $stmt->rowCount() > 0;
+}
+
+    
 
     // Get user ID (for OTP saving and verification)
     public function getUserId() {

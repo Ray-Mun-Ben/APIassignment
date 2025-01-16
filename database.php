@@ -8,6 +8,11 @@ class Database
     private $password = '';
     private $pdo;
 
+    public function __construct() {
+        // Initialize the PDO connection in the constructor
+        $this->connect();
+    }
+
     public function connect()
     {
         if ($this->pdo === null) {
@@ -23,6 +28,11 @@ class Database
                 die("Database connection error. Please try again later.");
             }
         }
+        return $this->pdo;
+    }
+
+    // Add a getter method for PDO connection
+    public function getConnection() {
         return $this->pdo;
     }
 }
