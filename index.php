@@ -7,45 +7,32 @@
     <title>Welcome</title>
     <style>
         body {
-            background: linear-gradient(120deg, #fdfbfb, #ebedee);
+            background-image: url("fabio-fistarol-qai_Clhyq0s-unsplash.jpg"); 
+            background-size: cover; /* or contain, auto, etc. - see below */
+            background-repeat: no-repeat; /* Optional: Prevent image from repeating */
+            background-position: center; /* Optional: Position the image */
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin: 0; /* Important: Remove default body margin */
         }
+
         .container {
             text-align: center;
             padding: 50px;
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .btn-custom {
-            margin: 10px;
-            width: 200px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border: none;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-            border: none;
-        }
-        .btn-secondary:hover {
-            background-color: #495057;
-        }
+
+        /* ... rest of your CSS ... */
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to User Management</h1>
-        <p class="lead">Manage your account securely and easily.</p>
+        <h1>Feel Fresh Resort Booking & Management System</h1>
+        <p class="lead">ver.1.3.0 <i>still in development</i></p>
         <a href="register.php" class="btn btn-primary btn-custom">Register</a>
         <a href="login.php" class="btn btn-secondary btn-custom">Login</a>
     </div>

@@ -118,4 +118,59 @@ class User {
     public function getUserId() {
         return $_SESSION['user_id'];
     }
+
+// Save user's accommodation preferences
+public function storeAccommodation($userId, $roomType, $wifi, $breakfast, $pool) {
+    $stmt = $this->pdo->prepare("INSERT INTO accommodations (user_id, room_type, wifi, breakfast, pool)
+                                 VALUES (:user_id, :room_type, :wifi, :breakfast, :pool)
+                                 ON DUPLICATE KEY UPDATE 
+                                 room_type = VALUES(room_type), wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool)");
+    $stmt->execute([
+        ':user_id' => $userId,
+        ':room_type' => $roomType,
+        ':wifi' => $wifi,
+        ':breakfast' => $breakfast,
+        ':pool' => $pool
+    ]);
+}
+
+// Get the user's accommodation preferences
+public function getAccommodation($userId) {
+    $stmt = $this->pdo->prepare("SELECT * FROM accommodations WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $userId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+// Save meal plan and gym activity choices
+// Insert or update user's extras (meal plan & gym activity)
+public function saveUserExtras($userId, $mealPlan, $gymActivity) {
+    $stmt = $this->pdo->prepare("
+        INSERT INTO extras (user_id, meal_plan, gym_activity) 
+        VALUES (:user_id, :meal_plan, :gym_activity)
+        ON DUPLICATE KEY UPDATE meal_plan = VALUES(meal_plan), gym_activity = VALUES(gym_activity)
+    ");
+    $stmt->execute([
+        ':user_id' => $userId,
+        ':meal_plan' => $mealPlan,
+        ':gym_activity' => $gymActivity
+    ]);
+}
+
+// Fetch user's selected extras
+public function getUserExtras($userId) {
+    $stmt = $this->pdo->prepare("SELECT meal_plan, gym_activity FROM extras WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $userId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['meal_plan' => null, 'gym_activity' => null];
+}
+
+public function getUserById($userId) {
+    $stmt = $this->pdo->prepare("SELECT id, username AS name, email FROM users WHERE id = :id");
+    $stmt->execute([':id' => $userId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+
+
 }
