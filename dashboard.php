@@ -56,6 +56,9 @@ $username = $user->getUsernameById($_SESSION['user_id']);
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                        <a class="nav-link" href="grid.php">GridTest</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="index.php">Home</a>
                     </li>
