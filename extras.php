@@ -5,17 +5,27 @@ session_start();
 $pdo = (new Database())->getConnection();
 $user_id = $_SESSION['user_id'] ?? null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_id) {
+if (!$user_id) {
+    die("User ID not found in session.");
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $meal_plan = $_POST['meal_plan'] ?? '';
-    $gym_activities = isset($_POST['gym_activities']) ? implode(", ", $_POST['gym_activities']) : '';
-    
-    $stmt = $pdo->prepare("INSERT INTO user_extras (user_id, meal_plan, gym_activities) VALUES (:user_id, :meal_plan, :gym_activities)");
-    $stmt->execute([
+    $gym_activity = isset($_POST['gym_activities']) ? implode(", ", $_POST['gym_activities']) : '';
+
+    $stmt = $pdo->prepare("INSERT INTO extras (user_id, meal_plan, gym_activity) 
+        VALUES (:user_id, :meal_plan, :gym_activity) 
+        ON DUPLICATE KEY UPDATE meal_plan = :meal_plan, gym_activity = :gym_activity");
+
+    if ($stmt->execute([
         ':user_id' => $user_id,
         ':meal_plan' => $meal_plan,
-        ':gym_activity' => $gym_activities
-    ]);
-    echo "Extras saved successfully!";
+        ':gym_activity' => $gym_activity
+    ])) {
+        echo "Extras saved successfully!";
+    } else {
+        echo "Error: " . implode(" ", $stmt->errorInfo());
+    }
 }
 ?>
 
