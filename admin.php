@@ -2,7 +2,7 @@
 require_once 'database.php';
 session_start();
 
-// Ensure admin is logged in (Modify this based on your authentication system)
+// Ensure admin is logged in
 if (!isset($_SESSION['admin_id'])) {
     die("Access Denied: Admin login required.");
 }
@@ -61,6 +61,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
+
+    <!-- Admin Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Feel Fresh Resort - Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.php">Manage Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="Admin_dashboard.php">Admin Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <form method="POST" action="">
+                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Section -->
     <div class="container mt-5">
         <h2>Manage User Bookings</h2>
         <table class="table table-bordered">
@@ -112,5 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
             </tbody>
         </table>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

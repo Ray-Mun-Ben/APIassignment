@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($admin && password_verify($password, $admin['password'])) {
         $_SESSION['admin_id'] = $admin['id'];
-        header("Location: admin.php");
+        header("Location: admin_home.php");
         exit;
     } else {
         $error = "Invalid username or password.";

@@ -3,42 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feel Fresh Resort</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/custom.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Welcome</title>
+    <style>
+        body {
+            background-image: url("fabio-fistarol-qai_Clhyq0s-unsplash.jpg"); 
+            background-size: cover; /* or contain, auto, etc. - see below */
+            background-repeat: no-repeat; /* Optional: Prevent image from repeating */
+            background-position: center; /* Optional: Position the image */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0; /* Important: Remove default body margin */
+        }
+
+        .container {
+            text-align: center;
+            padding: 50px;
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ... rest of your CSS ... */
+    </style>
 </head>
 <body>
-    
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <img src="images/logo.png" alt="Feel Fresh Resort" height="50">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link active" href="index.php">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="extras.php">Extras</a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.php">Sign In</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    
-    <header class="hero-section text-center py-5 bg-primary text-white">
-        <div class="container">
-            <h1 class="display-4">Welcome to Feel Fresh Resort</h1>
-            <p class="lead">Book your perfect stay with us</p>
-            <a href="login.php" class="btn btn-light">Book Now</a>
-        </div>
-    </header>
-    
-    <footer class="bg-dark text-white text-center p-3">
-        <p>&copy; 2025 Feel Fresh Resort. All Rights Reserved.</p>
-    </footer>
-    
-    <script src="js/bootstrap.bundle.min.js"></script>
+    <div class="container">
+        <h1>Feel Fresh Resort Booking & Management System</h1>
+        <p class="lead">ver.1.3.0 <i>still in development</i></p>
+        <a href="register.php" class="btn btn-primary btn-custom">Register</a>
+        <a href="login.php" class="btn btn-secondary btn-custom">Login</a>
+    </div>
 </body>
 </html>
