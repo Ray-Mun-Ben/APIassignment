@@ -1,5 +1,5 @@
 <?php
-require_once 'database.php';
+require_once __DIR__ . '/../config/database.php';
 session_start();
 
 // Ensure admin is logged in (Modify this based on your authentication system)
