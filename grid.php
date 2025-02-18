@@ -79,31 +79,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <div class="container mt-4">
     <h2>Select Your Accommodation</h2>
-    <form method="post">
-        <label for="room_type">Choose Room Type:</label>
-        <select name="room_type" id="room_type" class="form-select" required>
-            <option value="Standard">Standard</option>
-            <option value="Deluxe">Deluxe</option>
-            <option value="Suite">Suite</option>
-        </select>
-
-        <div class="form-check mt-3">
-            <input type="checkbox" class="form-check-input" id="wifi" name="wifi">
-            <label for="wifi" class="form-check-label">WiFi</label>
-        </div>
-
-        <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="breakfast" name="breakfast">
-            <label for="breakfast" class="form-check-label">Breakfast</label>
-        </div>
-
-        <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="pool" name="pool">
-            <label for="pool" class="form-check-label">Pool Access</label>
-        </div>
-
-        <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
-    </form>
+    <form id="accommodationForm">
+    <label>
+        <input type="checkbox" name="wifi" data-price="10"> WiFi ($10)
+    </label>
+    <label>
+        <input type="checkbox" name="breakfast" data-price="15"> Breakfast ($15)
+    </label>
+    <label>
+        <input type="checkbox" name="pool" data-price="20"> Pool Access ($20)
+    </label>
+</form>
 </div>
 </body>
+<script>
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('input[type=checkbox]:checked, select').forEach(el => {
+            if (el.type === 'checkbox' && el.checked) {
+                total += parseFloat(el.dataset.price);
+            } else if (el.tagName === 'SELECT') {
+                total += parseFloat(el.value);
+            }
+        });
+        document.getElementById('totalPrice').textContent = '$' + total;
+    }
+
+    document.querySelectorAll('input[type=checkbox], select').forEach(el => {
+        el.addEventListener('change', updateTotal);
+    });
+</script>
+
+/* Total price display */
+
+<div style="position: fixed; bottom: 10px; right: 10px; font-size: 18px; font-weight: bold;">
+    Total: <span id="totalPrice">$0</span>
+</div>
 </html>
