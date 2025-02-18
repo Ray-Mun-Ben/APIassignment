@@ -79,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <div class="container mt-4">
     <h2>Select Your Accommodation</h2>
-    <form id="accommodationForm" class="p-3 border rounded shadow-sm bg-light">
+    <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
     <h4>Accommodation Options</h4>
     <div class="form-check">
         <input class="form-check-input" type="checkbox" id="wifi" name="wifi" data-price="10">
@@ -93,6 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input class="form-check-input" type="checkbox" id="pool" name="pool" data-price="20">
         <label class="form-check-label" for="pool">Pool Access ($20)</label>
     </div>
+    <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
 </form>
 </div>
 <script>

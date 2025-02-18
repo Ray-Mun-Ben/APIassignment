@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container mt-5">
         <h2 class="text-center">Select Your Extras</h2>
-        <form id="extrasForm" class="p-3 border rounded shadow-sm bg-light mt-3">
+        <form id="extrasForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light mt-3">
     <h4>Extra Amenities</h4>
     <div class="mb-2">
         <label for="meal_plan" class="form-label">Meal Plan:</label>
@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input class="form-check-input" type="checkbox" id="gym_activity" name="gym_activity" data-price="25">
         <label class="form-check-label" for="gym_activity">Gym Access ($25)</label>
     </div>
+    <button type="submit" class="btn btn-success mt-3">Save Extras</button>
 </form>
     </div>
     <script>
