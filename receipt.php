@@ -1,7 +1,7 @@
 <?php
 require_once 'vendor/autoload.php';
 require_once 'database.php';
-require_once 'vendor/autoload.php'; // Ensure you have dompdf installed via composer
+
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -28,24 +28,11 @@ $extras_stmt->execute([':user_id' => $user_id]);
 $extras = $extras_stmt->fetch(PDO::FETCH_ASSOC);
 
 $total_cost = 0;
-
-if ($accommodation['wifi']) {
-    $total_cost += $accommodation['wifi_price'];
-}
-if ($accommodation['breakfast']) {
-    $total_cost += $accommodation['breakfast_price'];
-}
-if ($accommodation['pool']) {
-    $total_cost += $accommodation['pool_price'];
-}
-
-if ($extras['meal_plan']) {
-    $total_cost += $extras['meal_plan_price'];
-}
-if ($extras['gym_activity']) {
-    $total_cost += $extras['gym_activity_price'];
-}
-
+if ($accommodation['wifi']) $total_cost += $accommodation['wifi_price'];
+if ($accommodation['breakfast']) $total_cost += $accommodation['breakfast_price'];
+if ($accommodation['pool']) $total_cost += $accommodation['pool_price'];
+if ($extras['meal_plan']) $total_cost += $extras['meal_plan_price'];
+if ($extras['gym_activity']) $total_cost += $extras['gym_activity_price'];
 
 // Generate receipt HTML
 $html = "
@@ -88,23 +75,20 @@ $html = "
 </body>
 </html>";
 
-
-use Dompdf\Options;
-
-$options = new Options();
-$options->set('defaultFont', 'Arial');
-$dompdf = new Dompdf($options);
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-
-$dompdf->stream("receipt.pdf", ["Attachment" => true]);
-
-
 // Display receipt page
-echo $receipt_html;
+if (!isset($_GET['download'])) {
+    echo $html;
+    echo "
+    <div class='container text-center mt-3'>
+        <a href='receipt.php?download=1' class='btn btn-primary'>Download as PDF</a>
+    </div>";
+} else {
+    $options = new Options();
+    $options->set('defaultFont', 'Arial');
+    $dompdf = new Dompdf($options);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+    $dompdf->stream("receipt.pdf", ["Attachment" => true]);
+}
 ?>
-
-<div class='container text-center mt-3'>
-    <a href='receipt.php?download=1' class='btn btn-primary'>Download as PDF</a>
-</div>
