@@ -1,6 +1,7 @@
 <?php
-require_once 'database.php';
-require_once 'user.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../models/User.php';
+
 
 session_start();
 
