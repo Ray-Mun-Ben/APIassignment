@@ -81,6 +81,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h2>Select Your Accommodation</h2>
     <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
     <h4>Accommodation Options</h4>
+    <div class="mb-2">
+        <label for="room_type" class="form-label">Room Type:</label>
+        <select id="room_type" name="room_type" class="form-select" data-price="0">
+            <option value="standard" data-price="50">Standard ($50)</option>
+            <option value="deluxe" data-price="100">Deluxe ($100)</option>
+            <option value="suite" data-price="150">Suite ($150)</option>
+        </select>
+    </div>
     <div class="form-check">
         <input class="form-check-input" type="checkbox" id="wifi" name="wifi" data-price="10">
         <label class="form-check-label" for="wifi">WiFi ($10)</label>
