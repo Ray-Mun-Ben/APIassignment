@@ -7,8 +7,9 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../models/User.php';
+
 
 $database = new Database();
 $pdo = $database->connect();
