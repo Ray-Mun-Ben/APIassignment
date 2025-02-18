@@ -79,19 +79,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <div class="container mt-4">
     <h2>Select Your Accommodation</h2>
-    <form id="accommodationForm">
-    <label>
-        <input type="checkbox" name="wifi" data-price="10"> WiFi ($10)
-    </label>
-    <label>
-        <input type="checkbox" name="breakfast" data-price="15"> Breakfast ($15)
-    </label>
-    <label>
-        <input type="checkbox" name="pool" data-price="20"> Pool Access ($20)
-    </label>
+    <form id="accommodationForm" class="p-3 border rounded shadow-sm bg-light">
+    <h4>Accommodation Options</h4>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="wifi" name="wifi" data-price="10">
+        <label class="form-check-label" for="wifi">WiFi ($10)</label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast" data-price="15">
+        <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="pool" name="pool" data-price="20">
+        <label class="form-check-label" for="pool">Pool Access ($20)</label>
+    </div>
 </form>
 </div>
-</body>
 <script>
     function updateTotal() {
         let total = 0;
@@ -102,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 total += parseFloat(el.value);
             }
         });
-        document.getElementById('totalPrice').textContent = '$' + total;
+        document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
     }
 
     document.querySelectorAll('input[type=checkbox], select').forEach(el => {
@@ -112,7 +115,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 /* Total price display */
 
-<div style="position: fixed; bottom: 10px; right: 10px; font-size: 18px; font-weight: bold;">
-    Total: <span id="totalPrice">$0</span>
+<div class="fixed-bottom text-end p-3 bg-dark text-white fw-bold shadow-sm">
+    Total: <span id="totalPrice">$0.00</span>
 </div>
+
+</body>
 </html>
