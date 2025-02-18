@@ -50,37 +50,38 @@ $username = $user->getUsernameById($_SESSION['user_id']);
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Feel Fresh Resort</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                        <a class="nav-link" href="grid.php">GridTest</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">ExistingUsers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="login.php">Sign In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="UserAcc.php">UserAccomodation</a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="POST" action="">
-                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
+                    <a class="nav-link" href="/assignment/views/booking/grid.php">GridTest</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/assignment/public/index.php">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/assignment/views/admin/dashboard.php">ExistingUsers</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/assignment/views/auth/login.php">Sign In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/assignment/models/UserAcc.php">UserAccomodation</a>
+                </li>
+                <li class="nav-item">
+                    <form method="POST" action="/assignment/views/auth/logout.php">
+                        <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                    </form>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <!-- Welcome Section -->
     <div class="container text-center mt-5">

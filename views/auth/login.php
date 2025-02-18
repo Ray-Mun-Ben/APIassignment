@@ -1,8 +1,7 @@
 <?php
 session_start(); // Start the session for session handling
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../models/User.php';
-
+require_once __DIR__ . '/../../models/User.php';	
 
 $errorMessage = "";
 
@@ -31,8 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['logged_in'] = true;
 
             // Redirect to the dashboard or home page
-            header("Location: dashboard.php");
+            header("Location: /assignment/views/admin/dashboard.php");
             exit();
+            
+
         } else {
             $errorMessage = "Invalid email or password.";
         }

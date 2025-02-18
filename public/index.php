@@ -33,8 +33,9 @@
     <div class="container">
         <h1>Feel Fresh Resort Booking & Management System</h1>
         <p class="lead">ver.1.3.0 <i>still in development</i></p>
-        <a href="/views/auth/register.php" class="btn btn-primary btn-custom">Register</a>
-        <a href="/views/auth/login.php" class="btn btn-secondary btn-custom">Login</a>
+        <a href="../views/auth/register.php" class="btn btn-primary btn-custom">Register</a>
+<a href="../views/auth/login.php" class="btn btn-secondary btn-custom">Login</a>
+
 
     </div>
 </body>
