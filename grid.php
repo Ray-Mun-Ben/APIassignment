@@ -1,141 +1,112 @@
 <?php
+require_once 'database.php';
 session_start();
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
+
+$pdo = (new Database())->getConnection();
+$user_id = $_SESSION['user_id'] ?? null;
+
+if (!$user_id) {
+    die("User ID not found in session.");
 }
 
-require_once 'Database.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $meal_plan = $_POST['meal_plan'] ?? '';
+    $gym_access = isset($_POST['gym_access']) ? 1 : 0;
+    $gym_activities = isset($_POST['gym_activities']) ? implode(", ", $_POST['gym_activities']) : '';
+    $meal_plan_price = ($_POST['meal_plan'] != '0') ? 20 : 0;
+    $gym_activity_price = count($_POST['gym_activities'] ?? []) * 25;
 
-$database = new Database();
-$pdo = $database->connect();
+    $stmt = $pdo->prepare("INSERT INTO extras (user_id, meal_plan, meal_plan_price, gym_access, gym_activity, gym_activity_price) 
+        VALUES (:user_id, :meal_plan, :meal_plan_price, :gym_access, :gym_activity, :gym_activity_price) 
+        ON DUPLICATE KEY UPDATE meal_plan = :meal_plan, meal_plan_price = :meal_plan_price, gym_access = :gym_access, gym_activity = :gym_activity, gym_activity_price = :gym_activity_price");
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user_id = $_SESSION['user_id'];
-    $room_type = $_POST['room_type'];
-    $room_price = $_POST['room_price'];
-    $wifi = isset($_POST['wifi']) ? 1 : 0;
-    $breakfast = isset($_POST['breakfast']) ? 1 : 0;
-    $pool = isset($_POST['pool']) ? 1 : 0;
-    $reservation_date = $_POST['reservation_date'];
-
-    $stmt = $pdo->prepare("INSERT INTO accommodations (user_id, room_type, room_price, wifi, breakfast, pool, reservation_date) VALUES (:user_id, :room_type, :room_price, :wifi, :breakfast, :pool, :reservation_date) ON DUPLICATE KEY UPDATE room_type = VALUES(room_type), room_price = VALUES(room_price), wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool), reservation_date = VALUES(reservation_date)");
-    $stmt->execute([
+    if ($stmt->execute([
         ':user_id' => $user_id,
-        ':room_type' => $room_type,
-        ':room_price' => $room_price,
-        ':wifi' => $wifi,
-        ':breakfast' => $breakfast,
-        ':pool' => $pool,
-        ':reservation_date' => $reservation_date
-    ]);
-    header("Location: receipt.php");
-    exit();
+        ':meal_plan' => $meal_plan,
+        ':meal_plan_price' => $meal_plan_price,
+        ':gym_access' => $gym_access,
+        ':gym_activity' => $gym_activities,
+        ':gym_activity_price' => $gym_activity_price
+    ])) {
+        echo "Extras saved successfully!";
+    } else {
+        echo "Error: " . implode(" ", $stmt->errorInfo());
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Your Stay</title>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/custom.css">
-    <script>
-        function updateRoomPrice() {
-            const roomSelect = document.getElementById('room_type');
-            const roomPriceInput = document.getElementById('room_price');
-            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-            roomPriceInput.value = selectedOption.getAttribute('data-price');
-        }
-    </script>
+    <title>Extras Selection</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <img src="images/logo.png" alt="Feel Fresh Resort" height="50">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="extras.php">Extras</a></li>
-                    <li class="nav-item"><a class="nav-link" href="logout.php">Sign Out</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    
-    <div class="container mt-4">
-        <h2 class="text-center">Select Your Accommodation</h2>
+    <div class="container mt-5">
+        <h2 class="text-center">Select Your Extras</h2>
 
-        <div class="row text-center mb-4">
-            <div class="col-md-4">
-                <div class="card">
-                    <img src="images/room1.jpg" class="card-img-top" alt="Standard Room">
-                    <div class="card-body">
-                        <h5 class="card-title">Standard Room</h5>
-                        <p class="card-text">A cozy and affordable stay with essential amenities.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <img src="images/room2.jpg" class="card-img-top" alt="Deluxe Room">
-                    <div class="card-body">
-                        <h5 class="card-title">Deluxe Room</h5>
-                        <p class="card-text">Experience comfort with a spacious deluxe room.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <img src="images/room3.jpg" class="card-img-top" alt="Suite Room">
-                    <div class="card-body">
-                        <h5 class="card-title">Suite Room</h5>
-                        <p class="card-text">Luxury and elegance combined in our suite.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
+        <form id="extrasForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light mt-3">
+            <h4>Extra Amenities</h4>
             <div class="mb-2">
-                <label for="room_type" class="form-label">Room Type:</label>
-                <select id="room_type" name="room_type" class="form-select" onchange="updateRoomPrice()">
-                    <option value="standard" data-price="50">Standard ($50)</option>
-                    <option value="deluxe" data-price="100">Deluxe ($100)</option>
-                    <option value="suite" data-price="150">Suite ($150)</option>
+                <label for="meal_plan" class="form-label">Meal Plan:</label>
+                <select id="meal_plan" name="meal_plan" class="form-select" data-price="20">
+                    <option value="0">No Meal Plan</option>
+                    <option value="Vegan">Vegan Meal Plan ($20)</option>
+                    <option value="Keto">Keto Meal Plan ($20)</option>
                 </select>
             </div>
-            <input type="hidden" id="room_price" name="room_price" value="50">
+            
             <div class="mb-2">
-                <label for="reservation_date" class="form-label">Reservation Date:</label>
-                <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
+                <h5>Gym Activities</h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="gym_access" name="gym_access" value="1" data-price="25">
+                    <label class="form-check-label" for="gym_access">Gym Access ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="yoga" name="gym_activities[]" value="Yoga" data-price="25">
+                    <label class="form-check-label" for="yoga">Yoga ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="weightlifting" name="gym_activities[]" value="Weightlifting" data-price="25">
+                    <label class="form-check-label" for="weightlifting">Weightlifting ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cardio" name="gym_activities[]" value="Cardio" data-price="25">
+                    <label class="form-check-label" for="cardio">Cardio ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="pilates" name="gym_activities[]" value="Pilates" data-price="25">
+                    <label class="form-check-label" for="pilates">Pilates ($25)</label>
+                </div>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="wifi" name="wifi">
-                <label class="form-check-label" for="wifi">WiFi ($10)</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast">
-                <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="pool" name="pool">
-                <label class="form-check-label" for="pool">Pool Access ($20)</label>
-            </div>
-            <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
+            
+            <button type="submit" class="btn btn-success mt-3">Save Extras</button>
         </form>
     </div>
-    
-    <footer class="bg-dark text-white text-center p-3 mt-5">
-        <p>&copy; 2025 Feel Fresh Resort. All Rights Reserved.</p>
-    </footer>
-    
-    <script src="js/bootstrap.bundle.min.js"></script>
+
+    <div class="fixed-bottom text-end p-3 bg-dark text-white fw-bold shadow-sm">
+        Total: <span id="totalPrice">$0.00</span>
+    </div>
+
+    <script>
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('input[type=checkbox]:checked, select').forEach(el => {
+                if (el.type === 'checkbox' && el.checked) {
+                    total += parseFloat(el.dataset.price);
+                } else if (el.tagName === 'SELECT' && el.value !== '0') {
+                    total += parseFloat(el.dataset.price);
+                }
+            });
+            document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+        }
+        document.querySelectorAll('input[type=checkbox], select').forEach(el => {
+            el.addEventListener('change', updateTotal);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
