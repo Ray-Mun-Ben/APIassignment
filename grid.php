@@ -101,35 +101,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
         </div>
+        <script>
+    function updateRoomDetails() {
+        const roomSelect = document.getElementById('room_type');
+        const roomPriceInput = document.getElementById('room_price');
+        const daysInput = document.getElementById('days');
+        const selectedOption = roomSelect.options[roomSelect.selectedIndex];
 
-        <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
-            <div class="mb-2">
-                <label for="room_type" class="form-label">Room Type:</label>
-                <select id="room_type" name="room_type" class="form-select" onchange="updateRoomPrice()">
-                    <option value="standard" data-price="50">Standard ($50)</option>
-                    <option value="deluxe" data-price="100">Deluxe ($100)</option>
-                    <option value="suite" data-price="150">Suite ($150)</option>
-                </select>
-            </div>
-            <input type="hidden" id="room_price" name="room_price" value="50">
-            <div class="mb-2">
-                <label for="reservation_date" class="form-label">Reservation Date:</label>
-                <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="wifi" name="wifi">
-                <label class="form-check-label" for="wifi">WiFi ($10)</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast">
-                <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="pool" name="pool">
-                <label class="form-check-label" for="pool">Pool Access ($20)</label>
-            </div>
-            <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
-        </form>
+        // Set the room price
+        roomPriceInput.value = selectedOption.getAttribute('data-price');
+
+        // Set max days limit based on room type
+        let maxDays = 10; // Default for Standard
+        if (roomSelect.value === "deluxe") {
+            maxDays = 20;
+        } else if (roomSelect.value === "suite") {
+            maxDays = 28;
+        }
+
+        daysInput.max = maxDays;
+        if (parseInt(daysInput.value) > maxDays) {
+            daysInput.value = maxDays;
+        }
+    }
+</script>
+
+<form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
+    <div class="mb-2">
+        <label for="room_type" class="form-label">Room Type:</label>
+        <select id="room_type" name="room_type" class="form-select" onchange="updateRoomDetails()">
+            <option value="standard" data-price="50">Standard ($50 per night, Max 10 days)</option>
+            <option value="deluxe" data-price="100">Deluxe ($100 per night, Max 20 days)</option>
+            <option value="suite" data-price="150">Suite ($150 per night, Max 28 days)</option>
+        </select>
+    </div>
+    <input type="hidden" id="room_price" name="room_price" value="50">
+
+    <div class="mb-2">
+        <label for="days" class="form-label">Number of Days:</label>
+        <input type="number" id="days" name="days" class="form-control" min="1" value="1" required>
+    </div>
+
+    <div class="mb-2">
+        <label for="reservation_date" class="form-label">Reservation Date:</label>
+        <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
+</form>
+
     </div>
     
     <footer class="bg-dark text-white text-center p-3 mt-5">

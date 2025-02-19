@@ -29,10 +29,15 @@ $res_stmt = $pdo->prepare("
 $res_stmt->execute([':user_id' => $user_id]);
 $reservation = $res_stmt->fetch(PDO::FETCH_ASSOC);
 
-// Check if user already has a confirmed booking
-$booking_stmt = $pdo->prepare("SELECT id FROM bookings WHERE user_id = :user_id LIMIT 1");
+// Fetch existing booking
+$booking_stmt = $pdo->prepare("
+    SELECT id FROM bookings WHERE user_id = :user_id LIMIT 1");
 $booking_stmt->execute([':user_id' => $user_id]);
 $booking = $booking_stmt->fetch(PDO::FETCH_ASSOC);
+
+// Convert gym activities to readable format
+$gym_activities_list = $reservation['gym_activity'] ? explode(", ", $reservation['gym_activity']) : [];
+$gym_activities_display = empty($gym_activities_list) ? '-' : implode("<br>", $gym_activities_list);
 
 $total_cost = 0;
 if ($reservation) {
@@ -44,13 +49,9 @@ if ($reservation) {
     if ($reservation['gym_activity_price']) $total_cost += $reservation['gym_activity_price'];
 }
 
-// Convert gym activities into a readable format
-$gym_activities_list = $reservation['gym_activity'] ? explode(", ", $reservation['gym_activity']) : [];
-$gym_activities_display = empty($gym_activities_list) ? '-' : implode("<br>", $gym_activities_list);
-
-// Handle booking confirmation
+// Handle confirming a booking
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['confirm_booking'])) {
-    if (!$booking) { // Only allow booking if no prior booking exists
+    if (!$booking) { // If no booking exists, create one
         $insert_stmt = $pdo->prepare("
             INSERT INTO bookings (user_id, room_type, room_price, wifi, breakfast, pool, reservation_date, 
                                   meal_plan, meal_plan_price, gym_activity, gym_activity_price)
@@ -59,7 +60,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['confirm_booking'])) {
             FROM reservations 
             WHERE user_id = :user_id");
         $insert_stmt->execute([':user_id' => $user_id]);
+    } else { // If booking exists, update it
+        $update_stmt = $pdo->prepare("
+            UPDATE bookings 
+            SET room_type = :room_type, room_price = :room_price, wifi = :wifi, 
+                breakfast = :breakfast, pool = :pool, reservation_date = :reservation_date, 
+                meal_plan = :meal_plan, meal_plan_price = :meal_plan_price, 
+                gym_activity = :gym_activity, gym_activity_price = :gym_activity_price
+            WHERE user_id = :user_id");
+        $update_stmt->execute([
+            ':room_type' => $reservation['room_type'],
+            ':room_price' => $reservation['room_price'],
+            ':wifi' => $reservation['wifi'],
+            ':breakfast' => $reservation['breakfast'],
+            ':pool' => $reservation['pool'],
+            ':reservation_date' => $reservation['reservation_date'],
+            ':meal_plan' => $reservation['meal_plan'],
+            ':meal_plan_price' => $reservation['meal_plan_price'],
+            ':gym_activity' => $reservation['gym_activity'],
+            ':gym_activity_price' => $reservation['gym_activity_price'],
+            ':user_id' => $user_id
+        ]);
     }
+    header("Location: receipt.php");
+    exit();
+}
+
+// Handle canceling a booking
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['cancel_booking'])) {
+    $delete_stmt = $pdo->prepare("DELETE FROM bookings WHERE user_id = :user_id");
+    $delete_stmt->execute([':user_id' => $user_id]);
     header("Location: receipt.php");
     exit();
 }
@@ -105,29 +135,13 @@ $html = "
 
         <div class='text-center mt-3'>
             <form method='POST'>
-                <button type='submit' name='confirm_booking' class='btn btn-success' " . ($booking ? 'disabled' : '') . ">
-                    " . ($booking ? "Booking Confirmed" : "Confirm Booking") . "
-                </button>
+                <button type='submit' name='confirm_booking' class='btn btn-success'>Confirm Booking</button>
+                <button type='submit' name='cancel_booking' class='btn btn-danger'>Cancel Booking</button>
+                <a href='UserAcc.php' class='btn btn-warning'>Modify Reservation</a>
             </form>
         </div>
     </div>
 </body>
 </html>";
-
-// Display receipt page
-if (!isset($_GET['download'])) {
-    echo $html;
-    echo "
-    <div class='container text-center mt-3'>
-        <a href='receipt.php?download=1' class='btn btn-primary'>Download as PDF</a>
-    </div>";
-} else {
-    $options = new Options();
-    $options->set('defaultFont', 'Arial');
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-    $dompdf->stream("receipt.pdf", ["Attachment" => true]);
-}
+echo $html;
 ?>
