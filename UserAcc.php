@@ -20,7 +20,7 @@ if (!$user) {
 
 // Fetch latest accommodation details
 $acc_stmt = $pdo->prepare("
-    SELECT room_type, room_price, wifi, breakfast, pool, reservation_date 
+    SELECT room_type, room_price, days, wifi, breakfast, pool, reservation_date 
     FROM accommodations 
     WHERE user_id = :user_id 
     ORDER BY id DESC LIMIT 1");
@@ -48,15 +48,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
     if (!$reservation) {
         // Insert reservation if it doesn't exist
         $insert_stmt = $pdo->prepare("
-            INSERT INTO reservations (user_id, room_type, room_price, wifi, breakfast, pool, reservation_date, 
+            INSERT INTO reservations (user_id, room_type, room_price, days, wifi, breakfast, pool, reservation_date, 
                                       meal_plan, meal_plan_price, gym_activity, gym_activity_price)
-            VALUES (:user_id, :room_type, :room_price, :wifi, :breakfast, :pool, :reservation_date, 
+            VALUES (:user_id, :room_type, :room_price, :days, :wifi, :breakfast, :pool, :reservation_date, 
                     :meal_plan, :meal_plan_price, :gym_activity, :gym_activity_price)");
     } else {
         // Update reservation if it already exists
         $insert_stmt = $pdo->prepare("
             UPDATE reservations SET 
-                room_type = :room_type, room_price = :room_price, wifi = :wifi, breakfast = :breakfast, 
+                room_type = :room_type, room_price = :room_price, days = :days, wifi = :wifi, breakfast = :breakfast, 
                 pool = :pool, reservation_date = :reservation_date, 
                 meal_plan = :meal_plan, meal_plan_price = :meal_plan_price, 
                 gym_activity = :gym_activity, gym_activity_price = :gym_activity_price
@@ -68,6 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
         ':user_id' => $user_id,
         ':room_type' => $accommodation['room_type'] ?? null,
         ':room_price' => $accommodation['room_price'] ?? null,
+        ':days' => $accommodation['days'] ?? 1, // Default to 1 day if missing
         ':wifi' => $accommodation['wifi'] ?? 0,
         ':breakfast' => $accommodation['breakfast'] ?? 0,
         ':pool' => $accommodation['pool'] ?? 0,
@@ -130,7 +131,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
                 <h4>Accommodation Details</h4>
                 <?php if ($accommodation): ?>
                     <p><strong>Room Type:</strong> <?= htmlspecialchars($accommodation['room_type'] ?? 'N/A') ?></p>
-                    <p><strong>Room Price:</strong> <?= isset($accommodation['room_price']) ? "$" . htmlspecialchars($accommodation['room_price']) : '-' ?></p>
+                    <p><strong>Room Price Per Night:</strong> <?= isset($accommodation['room_price']) ? "$" . htmlspecialchars($accommodation['room_price']) : '-' ?></p>
+                    <p><strong>Number of Days:</strong> <?= htmlspecialchars($accommodation['days'] ?? 'N/A') ?></p>
+                    <p><strong>Total Room Cost:</strong> <?= isset($accommodation['room_price']) ? "$" . ($accommodation['room_price'] * ($accommodation['days'] ?? 1)) : '-' ?></p>
                     <p><strong>Reservation Date:</strong> <?= htmlspecialchars($accommodation['reservation_date'] ?? 'N/A') ?></p>
                     <p><strong>WiFi Access:</strong> <?= $accommodation['wifi'] ? 'Yes' : 'No' ?></p>
                     <p><strong>Breakfast Included:</strong> <?= $accommodation['breakfast'] ? 'Yes' : 'No' ?></p>
@@ -138,16 +141,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
                 <?php else: ?>
                     <p class="text-danger">No accommodation details found.</p>
                 <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <h4>Extras Selected</h4>
-                <p><strong>Meal Plan:</strong> <?= htmlspecialchars($extras['meal_plan'] ?? 'N/A') ?></p>
-                <p><strong>Meal Plan Price:</strong> <?= isset($extras['meal_plan_price']) ? "$" . htmlspecialchars($extras['meal_plan_price']) : '-' ?></p>
-                <p><strong>Gym Activities:</strong> <?= htmlspecialchars($extras['gym_activity'] ?? 'N/A') ?></p>
-                <p><strong>Gym Activity Price:</strong> <?= isset($extras['gym_activity_price']) ? "$" . htmlspecialchars($extras['gym_activity_price']) : '-' ?></p>
             </div>
         </div>
 
