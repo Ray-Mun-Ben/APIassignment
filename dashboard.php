@@ -14,66 +14,40 @@ $database = new Database();
 $pdo = $database->connect();
 $user = new User($pdo);
 
-// Fetch all users
-$users = $user->getAllUsers();
-
-// Handle user deletion
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['delete_user_id'])) {
-        $userIdToDelete = $_POST['delete_user_id'];
-        if ($user->deleteUserById($userIdToDelete)) {
-            header('Location: dashboard.php'); // Refresh the page
-            exit();
-        } else {
-            $deleteError = "Failed to delete user.";
-        }
-    } elseif (isset($_POST['sign_out'])) {
-        // Handle sign out
-        session_destroy();
-        header('Location: index.php'); // Redirect to landing page
-        exit();
-    }
-}
-
-$username = $user->getUsernameById($_SESSION['user_id']);
+// Fetch username from the database
+$userStmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+$userStmt->execute([$_SESSION['user_id']]);
+$userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+$username = $userData ? htmlspecialchars($userData['username']) : "Guest";
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Feel Fresh Resort - User Dashboard</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="main-layout">
+
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                        <a class="nav-link" href="grid.php">GridTest</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="grid.php">GridTest</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Accommodation</a></li>
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">ExistingUsers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="login.php">Sign In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="UserAcc.php">UserAccomodation</a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="POST" action="">
-                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                        <form method="POST" action="logout.php">
+                            <button type="submit" name="logout" class="btn btn-danger">Sign Out</button>
                         </form>
                     </li>
                 </ul>
@@ -83,44 +57,26 @@ $username = $user->getUsernameById($_SESSION['user_id']);
 
     <!-- Welcome Section -->
     <div class="container text-center mt-5">
-        <h1>Welcome, <?php echo htmlspecialchars($username); ?>!</h1>
+        <h1>Welcome, <?php echo $username; ?>!</h1>
     </div>
 
-    <!-- Users Table -->
-    <div class="container mt-5">
-        <h2>Registered Users</h2>
-
-        <?php if (isset($deleteError)): ?>
-            <div class="alert alert-danger"><?php echo htmlspecialchars($deleteError); ?></div>
-        <?php endif; ?>
-
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($users as $userRow): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($userRow['id']); ?></td>
-                        <td><?php echo htmlspecialchars($userRow['username']); ?></td>
-                        <td><?php echo htmlspecialchars($userRow['email']); ?></td>
-                        <td>
-                            <form method="POST" action="">
-                                <input type="hidden" name="delete_user_id" value="<?php echo htmlspecialchars($userRow['id']); ?>">
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <!-- Book Now Button -->
+    <div class="container text-center mt-4">
+        <a href="grid.php" class="btn btn-success btn-lg">Book Now</a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- User Options -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <a href="UserAcc.php" class="btn btn-primary w-100">Manage My Booking</a>
+            </div>
+            <div class="col-md-6">
+                <a href="extras.php" class="btn btn-secondary w-100">View Extras</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
