@@ -13,15 +13,17 @@ $pdo = $database->connect();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id'];
     $room_type = $_POST['room_type'];
+    $room_price = $_POST['room_price'];
     $wifi = isset($_POST['wifi']) ? 1 : 0;
     $breakfast = isset($_POST['breakfast']) ? 1 : 0;
     $pool = isset($_POST['pool']) ? 1 : 0;
     $reservation_date = $_POST['reservation_date'];
 
-    $stmt = $pdo->prepare("INSERT INTO accommodations (user_id, room_type, wifi, breakfast, pool, reservation_date) VALUES (:user_id, :room_type, :wifi, :breakfast, :pool, :reservation_date) ON DUPLICATE KEY UPDATE room_type = VALUES(room_type), wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool), reservation_date = VALUES(reservation_date)");
+    $stmt = $pdo->prepare("INSERT INTO accommodations (user_id, room_type, room_price, wifi, breakfast, pool, reservation_date) VALUES (:user_id, :room_type, :room_price, :wifi, :breakfast, :pool, :reservation_date) ON DUPLICATE KEY UPDATE room_type = VALUES(room_type), room_price = VALUES(room_price), wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool), reservation_date = VALUES(reservation_date)");
     $stmt->execute([
         ':user_id' => $user_id,
         ':room_type' => $room_type,
+        ':room_price' => $room_price,
         ':wifi' => $wifi,
         ':breakfast' => $breakfast,
         ':pool' => $pool,
@@ -39,6 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Book Your Stay</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/custom.css">
+    <script>
+        function updateRoomPrice() {
+            const roomSelect = document.getElementById('room_type');
+            const roomPriceInput = document.getElementById('room_price');
+            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
+            roomPriceInput.value = selectedOption.getAttribute('data-price');
+        }
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -62,59 +72,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container mt-4">
         <h2 class="text-center">Select Your Accommodation</h2>
 
-        <div  class="our_room">
-         <div class="container">
-            <div class="row">
-               <div class="col-md-12">
-                  <div class="titlepage">
-                     <p  class="margin_0">Lorem Ipsum available, but the majority have suffered </p>
-                  </div>
-               </div>
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="images/room1.jpg" class="card-img-top" alt="Standard Room">
+                    <div class="card-body">
+                        <h5 class="card-title">Standard Room</h5>
+                        <p class="card-text">A cozy and affordable stay with essential amenities.</p>
+                    </div>
+                </div>
             </div>
-            <div class="row">
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room1.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
-               </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room2.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
-               </div>
-               <div class="col-md-4 col-sm-6">
-                  <div id="serv_hover"  class="room">
-                     <div class="room_img">
-                        <figure><img src="images/room3.jpg" alt="#"/></figure>
-                     </div>
-                     <div class="bed_room">
-                        <h3>Bed Room</h3>
-                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
-                     </div>
-                  </div>
-               </div>
-               
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="images/room2.jpg" class="card-img-top" alt="Deluxe Room">
+                    <div class="card-body">
+                        <h5 class="card-title">Deluxe Room</h5>
+                        <p class="card-text">Experience comfort with a spacious deluxe room.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="images/room3.jpg" class="card-img-top" alt="Suite Room">
+                    <div class="card-body">
+                        <h5 class="card-title">Suite Room</h5>
+                        <p class="card-text">Luxury and elegance combined in our suite.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
             <div class="mb-2">
                 <label for="room_type" class="form-label">Room Type:</label>
-                <select id="room_type" name="room_type" class="form-select">
-                    <option value="standard">Standard ($50)</option>
-                    <option value="deluxe">Deluxe ($100)</option>
-                    <option value="suite">Suite ($150)</option>
+                <select id="room_type" name="room_type" class="form-select" onchange="updateRoomPrice()">
+                    <option value="standard" data-price="50">Standard ($50)</option>
+                    <option value="deluxe" data-price="100">Deluxe ($100)</option>
+                    <option value="suite" data-price="150">Suite ($150)</option>
                 </select>
             </div>
+            <input type="hidden" id="room_price" name="room_price" value="50">
             <div class="mb-2">
                 <label for="reservation_date" class="form-label">Reservation Date:</label>
                 <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
@@ -140,6 +137,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </footer>
     
     <script src="js/bootstrap.bundle.min.js"></script>
-    
 </body>
 </html>
