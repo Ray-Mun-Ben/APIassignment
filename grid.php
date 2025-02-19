@@ -1,132 +1,145 @@
 <?php
-require_once 'database.php';
 session_start();
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$pdo = (new Database())->getConnection();
-$userId = $_SESSION['user_id'];
+require_once 'Database.php';
+
+$database = new Database();
+$pdo = $database->connect();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user_id = $_SESSION['user_id'];
     $room_type = $_POST['room_type'];
     $wifi = isset($_POST['wifi']) ? 1 : 0;
     $breakfast = isset($_POST['breakfast']) ? 1 : 0;
     $pool = isset($_POST['pool']) ? 1 : 0;
+    $reservation_date = $_POST['reservation_date'];
 
-    $stmt = $pdo->prepare("INSERT INTO accommodations (user_id, room_type, wifi, breakfast, pool) 
-                           VALUES (:user_id, :room_type, :wifi, :breakfast, :pool)
-                           ON DUPLICATE KEY UPDATE 
-                           room_type = VALUES(room_type), wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool)");
+    $stmt = $pdo->prepare("INSERT INTO accommodations (user_id, room_type, wifi, breakfast, pool, reservation_date) VALUES (:user_id, :room_type, :wifi, :breakfast, :pool, :reservation_date) ON DUPLICATE KEY UPDATE room_type = VALUES(room_type), wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool), reservation_date = VALUES(reservation_date)");
     $stmt->execute([
-        ':user_id' => $userId,
+        ':user_id' => $user_id,
         ':room_type' => $room_type,
         ':wifi' => $wifi,
         ':breakfast' => $breakfast,
-        ':pool' => $pool
+        ':pool' => $pool,
+        ':reservation_date' => $reservation_date
     ]);
-    header("Location: dashboard.php");
+    header("Location: receipt.php");
     exit();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Your Accommodation</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Book Your Stay</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/custom.css">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.php">
+                <img src="images/logo.png" alt="Feel Fresh Resort" height="50">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                        <a class="nav-link" href="grid.php">GridTest</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">ExistingUsers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="extras.php">Extra Amenities</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="login.php">Sign In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="UserAcc.php">UserAccomodation</a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="POST" action="">
-                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
-                        </form>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="extras.php">Extras</a></li>
+                    <li class="nav-item"><a class="nav-link" href="logout.php">Sign Out</a></li>
                 </ul>
             </div>
         </div>
     </nav>
+    
+    <div class="container mt-4">
+        <h2 class="text-center">Select Your Accommodation</h2>
 
-<div class="container mt-4">
-    <h2>Select Your Accommodation</h2>
-    <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
-    <h4>Accommodation Options</h4>
-    <div class="mb-2">
-        <label for="room_type" class="form-label">Room Type:</label>
-        <select id="room_type" name="room_type" class="form-select" data-price="0">
-            <option value="standard" data-price="50">Standard ($50)</option>
-            <option value="deluxe" data-price="100">Deluxe ($100)</option>
-            <option value="suite" data-price="150">Suite ($150)</option>
-        </select>
+        <div  class="our_room">
+         <div class="container">
+            <div class="row">
+               <div class="col-md-12">
+                  <div class="titlepage">
+                     <p  class="margin_0">Lorem Ipsum available, but the majority have suffered </p>
+                  </div>
+               </div>
+            </div>
+            <div class="row">
+               <div class="col-md-4 col-sm-6">
+                  <div id="serv_hover"  class="room">
+                     <div class="room_img">
+                        <figure><img src="images/room1.jpg" alt="#"/></figure>
+                     </div>
+                     <div class="bed_room">
+                        <h3>Bed Room</h3>
+                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-4 col-sm-6">
+                  <div id="serv_hover"  class="room">
+                     <div class="room_img">
+                        <figure><img src="images/room2.jpg" alt="#"/></figure>
+                     </div>
+                     <div class="bed_room">
+                        <h3>Bed Room</h3>
+                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                     </div>
+                  </div>
+               </div>
+               <div class="col-md-4 col-sm-6">
+                  <div id="serv_hover"  class="room">
+                     <div class="room_img">
+                        <figure><img src="images/room3.jpg" alt="#"/></figure>
+                     </div>
+                     <div class="bed_room">
+                        <h3>Bed Room</h3>
+                        <p>If you are going to use a passage of Lorem Ipsum, you need to be sure there </p>
+                     </div>
+                  </div>
+               </div>
+               
+        <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
+            <div class="mb-2">
+                <label for="room_type" class="form-label">Room Type:</label>
+                <select id="room_type" name="room_type" class="form-select">
+                    <option value="standard">Standard ($50)</option>
+                    <option value="deluxe">Deluxe ($100)</option>
+                    <option value="suite">Suite ($150)</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label for="reservation_date" class="form-label">Reservation Date:</label>
+                <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="wifi" name="wifi">
+                <label class="form-check-label" for="wifi">WiFi ($10)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast">
+                <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="pool" name="pool">
+                <label class="form-check-label" for="pool">Pool Access ($20)</label>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
+        </form>
     </div>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="wifi" name="wifi" data-price="10">
-        <label class="form-check-label" for="wifi">WiFi ($10)</label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast" data-price="15">
-        <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="pool" name="pool" data-price="20">
-        <label class="form-check-label" for="pool">Pool Access ($20)</label>
-    </div>
-    <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
-</form>
-</div>
-<script>
-    function updateTotal() {
-        let total = 0;
-        document.querySelectorAll('input[type=checkbox]:checked, select').forEach(el => {
-            if (el.type === 'checkbox' && el.checked) {
-                total += parseFloat(el.dataset.price);
-            } else if (el.tagName === 'SELECT') {
-                total += parseFloat(el.value);
-            }
-        });
-        document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
-    }
-
-    document.querySelectorAll('input[type=checkbox], select').forEach(el => {
-        el.addEventListener('change', updateTotal);
-    });
-</script>
-
-/* Total price display */
-
-<div class="fixed-bottom text-end p-3 bg-dark text-white fw-bold shadow-sm">
-    Total: <span id="totalPrice">$0.00</span>
-</div>
-
+    
+    <footer class="bg-dark text-white text-center p-3 mt-5">
+        <p>&copy; 2025 Feel Fresh Resort. All Rights Reserved.</p>
+    </footer>
+    
+    <script src="js/bootstrap.bundle.min.js"></script>
+    
 </body>
 </html>

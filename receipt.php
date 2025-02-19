@@ -18,8 +18,8 @@ $user_stmt = $pdo->prepare("SELECT * FROM users WHERE id = :user_id");
 $user_stmt->execute([':user_id' => $user_id]);
 $user = $user_stmt->fetch(PDO::FETCH_ASSOC);
 
-// Fetch accommodation details
-$acc_stmt = $pdo->prepare("SELECT room_type, wifi, wifi_price, breakfast, breakfast_price, pool, pool_price FROM accommodations WHERE user_id = :user_id");
+// Fetch latest accommodation details including reservation_date and room price
+$acc_stmt = $pdo->prepare("SELECT room_type, room_price, wifi, wifi_price, breakfast, breakfast_price, pool, pool_price, reservation_date FROM accommodations WHERE user_id = :user_id ORDER BY id DESC LIMIT 1");
 $acc_stmt->execute([':user_id' => $user_id]);
 $accommodation = $acc_stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -28,11 +28,12 @@ $extras_stmt->execute([':user_id' => $user_id]);
 $extras = $extras_stmt->fetch(PDO::FETCH_ASSOC);
 
 $total_cost = 0;
-if ($accommodation['wifi']) $total_cost += $accommodation['wifi_price'];
-if ($accommodation['breakfast']) $total_cost += $accommodation['breakfast_price'];
-if ($accommodation['pool']) $total_cost += $accommodation['pool_price'];
-if ($extras['meal_plan']) $total_cost += $extras['meal_plan_price'];
-if ($extras['gym_activity']) $total_cost += $extras['gym_activity_price'];
+if ($accommodation && $accommodation['room_price']) $total_cost += $accommodation['room_price'];
+if ($accommodation && $accommodation['wifi']) $total_cost += $accommodation['wifi_price'];
+if ($accommodation && $accommodation['breakfast']) $total_cost += $accommodation['breakfast_price'];
+if ($accommodation && $accommodation['pool']) $total_cost += $accommodation['pool_price'];
+if ($extras && $extras['meal_plan']) $total_cost += $extras['meal_plan_price'];
+if ($extras && $extras['gym_activity']) $total_cost += $extras['gym_activity_price'];
 
 // Generate receipt HTML
 $html = "
@@ -55,7 +56,8 @@ $html = "
         <h4>Accommodation Details</h4>
         <table class='table'>
             <tr><th>Feature</th><th>Selected</th><th>Price</th></tr>
-            <tr><td>Room Type</td><td>{$accommodation['room_type']}</td><td>-</td></tr>
+            <tr><td>Room Type</td><td>{$accommodation['room_type']}</td><td>" . ('$' . $accommodation['room_price']) . "</td></tr>
+            <tr><td>Reservation Date</td><td>{$accommodation['reservation_date']}</td><td>-</td></tr>
             <tr><td>WiFi</td><td>" . ($accommodation['wifi'] ? 'Yes' : 'No') . "</td><td>" . ($accommodation['wifi'] ? '$' . $accommodation['wifi_price'] : '-') . "</td></tr>
             <tr><td>Breakfast</td><td>" . ($accommodation['breakfast'] ? 'Yes' : 'No') . "</td><td>" . ($accommodation['breakfast'] ? '$' . $accommodation['breakfast_price'] : '-') . "</td></tr>
             <tr><td>Pool Access</td><td>" . ($accommodation['pool'] ? 'Yes' : 'No') . "</td><td>" . ($accommodation['pool'] ? '$' . $accommodation['pool_price'] : '-') . "</td></tr>
