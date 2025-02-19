@@ -11,16 +11,22 @@ if (!$user_id) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $meal_plan = $_POST['meal_plan'] ?? '';
-    $gym_activity = isset($_POST['gym_activities']) ? implode(", ", $_POST['gym_activities']) : '';
+    $gym_access = isset($_POST['gym_access']) ? 1 : 0;
+    $gym_activities = isset($_POST['gym_activities']) ? implode(", ", $_POST['gym_activities']) : '';
+    $meal_plan_price = ($_POST['meal_plan'] != '0') ? 20 : 0;
+    $gym_activity_price = count($_POST['gym_activities'] ?? []) * 25;
 
-    $stmt = $pdo->prepare("INSERT INTO extras (user_id, meal_plan, gym_activity) 
-        VALUES (:user_id, :meal_plan, :gym_activity) 
-        ON DUPLICATE KEY UPDATE meal_plan = :meal_plan, gym_activity = :gym_activity");
+    $stmt = $pdo->prepare("INSERT INTO extras (user_id, meal_plan, meal_plan_price, gym_access, gym_activity, gym_activity_price) 
+        VALUES (:user_id, :meal_plan, :meal_plan_price, :gym_access, :gym_activity, :gym_activity_price) 
+        ON DUPLICATE KEY UPDATE meal_plan = :meal_plan, meal_plan_price = :meal_plan_price, gym_access = :gym_access, gym_activity = :gym_activity, gym_activity_price = :gym_activity_price");
 
     if ($stmt->execute([
         ':user_id' => $user_id,
         ':meal_plan' => $meal_plan,
-        ':gym_activity' => $gym_activity
+        ':meal_plan_price' => $meal_plan_price,
+        ':gym_access' => $gym_access,
+        ':gym_activity' => $gym_activities,
+        ':gym_activity_price' => $gym_activity_price
     ])) {
         echo "Extras saved successfully!";
     } else {
@@ -41,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -95,36 +101,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <form id="extrasForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light mt-3">
+    <div class="container mt-5">
+        <h2 class="text-center">Select Your Extras</h2>
+
+        <form id="extrasForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light mt-3 mb-5">
             <h4>Extra Amenities</h4>
             <div class="mb-2">
                 <label for="meal_plan" class="form-label">Meal Plan:</label>
-                <select id="meal_plan" name="meal_plan" class="form-select" data-price="30">
+                <select id="meal_plan" name="meal_plan" class="form-select" data-price="20">
                     <option value="0">No Meal Plan</option>
-                    <option value="30">Standard Meal Plan ($30)</option>
-                    <option value="50">Premium Meal Plan ($50)</option>
+                    <option value="Vegan">Vegan Meal Plan ($20)</option>
+                    <option value="Keto">Keto Meal Plan ($20)</option>
                 </select>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="gym_activity" name="gym_activity" data-price="25">
-                <label class="form-check-label" for="gym_activity">Gym Access ($25)</label>
+
+            <div class="mb-2">
+                <h5>Gym Activities</h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="gym_access" name="gym_access" value="1" data-price="25">
+                    <label class="form-check-label" for="gym_access">Gym Access ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="yoga" name="gym_activities[]" value="Yoga" data-price="25">
+                    <label class="form-check-label" for="yoga">Yoga ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="weightlifting" name="gym_activities[]" value="Weightlifting" data-price="25">
+                    <label class="form-check-label" for="weightlifting">Weightlifting ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cardio" name="gym_activities[]" value="Cardio" data-price="25">
+                    <label class="form-check-label" for="cardio">Cardio ($25)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="pilates" name="gym_activities[]" value="Pilates" data-price="25">
+                    <label class="form-check-label" for="pilates">Pilates ($25)</label>
+                </div>
             </div>
+
             <button type="submit" class="btn btn-success mt-3">Save Extras</button>
         </form>
     </div>
-    
-    <div class="fixed-bottom text-end p-3 bg-dark text-white fw-bold shadow-sm">
+    <div class="fixed-bottom text-end p-3 bg-dark text-white fw-bold shadow-sm" style="bottom: 10px;">
         Total: <span id="totalPrice">$0.00</span>
     </div>
-
     <script>
         function updateTotal() {
             let total = 0;
             document.querySelectorAll('input[type=checkbox]:checked, select').forEach(el => {
                 if (el.type === 'checkbox' && el.checked) {
                     total += parseFloat(el.dataset.price);
-                } else if (el.tagName === 'SELECT') {
-                    total += parseFloat(el.value);
+                } else if (el.tagName === 'SELECT' && el.value !== '0') {
+                    total += parseFloat(el.dataset.price);
                 }
             });
             document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
@@ -133,7 +161,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             el.addEventListener('change', updateTotal);
         });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
