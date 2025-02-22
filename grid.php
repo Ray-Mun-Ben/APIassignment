@@ -5,13 +5,19 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once 'Database.php';
+require_once 'database.php';
+require_once 'User.php';
+require_once 'Accommodation.php';
 
 $database = new Database();
 $pdo = $database->connect();
 
+$user = new User($pdo);
+$accommodation = new Accommodation($pdo);
+
+$user_id = $_SESSION['user_id'];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $user_id = $_SESSION['user_id'];
     $room_type = $_POST['room_type'];
     $room_price = $_POST['room_price'];
     $days = $_POST['days'];
@@ -20,37 +26,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pool = isset($_POST['pool']) ? 1 : 0;
     $reservation_date = $_POST['reservation_date'];
 
-    // Enforce stay limits based on room type
-    $maxDays = 10; // Default for standard
-    if ($room_type === "deluxe") {
-        $maxDays = 20;
-    } elseif ($room_type === "suite") {
-        $maxDays = 28;
-    }
-    $days = min($days, $maxDays);
-
-    // Insert or update accommodations
-    $stmt = $pdo->prepare("INSERT INTO accommodations 
-        (user_id, room_type, room_price, days, wifi, breakfast, pool, reservation_date) 
-        VALUES (:user_id, :room_type, :room_price, :days, :wifi, :breakfast, :pool, :reservation_date) 
-        ON DUPLICATE KEY UPDATE 
-        room_type = VALUES(room_type), room_price = VALUES(room_price), days = VALUES(days), 
-        wifi = VALUES(wifi), breakfast = VALUES(breakfast), pool = VALUES(pool), reservation_date = VALUES(reservation_date)");
-
-    $stmt->execute([
-        ':user_id' => $user_id,
-        ':room_type' => $room_type,
-        ':room_price' => $room_price,
-        ':days' => $days,
-        ':wifi' => $wifi,
-        ':breakfast' => $breakfast,
-        ':pool' => $pool,
-        ':reservation_date' => $reservation_date
-    ]);
+    // Save accommodation using the class
+    $accommodation->saveAccommodation($user_id, $room_type, $room_price, $days, $wifi, $breakfast, $pool, $reservation_date);
 
     header("Location: receipt.php");
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -60,11 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Your Stay</title>
     <link rel="stylesheet" href="styles2.css">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/custom.css">
     <script>
         function updateTotal() {
             let total = 0;
@@ -76,10 +55,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             const roomPrice = parseFloat(selectedOption.getAttribute('data-price'));
             const days = parseInt(daysInput.value);
 
-            total += roomPrice * days; // Room price * selected days
+            total += roomPrice * days;
 
             document.querySelectorAll('input[type=checkbox]:checked').forEach(el => {
-                total += parseFloat(el.dataset.price) * days; // Multiply selected services per night
+                total += parseFloat(el.dataset.price) * days;
             });
 
             totalPriceDisplay.textContent = '$' + total.toFixed(2);
@@ -87,13 +66,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         function updateRoomDetails() {
             const roomSelect = document.getElementById('room_type');
-            const roomPriceInput = document.getElementById('room_price');
             const daysInput = document.getElementById('days');
 
-            const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-            roomPriceInput.value = selectedOption.getAttribute('data-price');
-
-            let maxDays = 10; // Default for Standard
+            let maxDays = 10;
             if (roomSelect.value === "deluxe") {
                 maxDays = 20;
             } else if (roomSelect.value === "suite") {
@@ -120,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -141,7 +116,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </nav>
 
-    
     <div class="container mt-4">
         <h2 class="text-center">Select Your Accommodation</h2>
 
@@ -176,12 +150,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
-            
-        <div class="mb-2">
+            <div class="mb-2">
                 <label for="reservation_date" class="form-label">Reservation Date:</label>
                 <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
             </div>
-        <div class="mb-2">
+            <div class="mb-2">
                 <label for="room_type" class="form-label">Room Type:</label>
                 <select id="room_type" name="room_type" class="form-select" onchange="updateRoomDetails()">
                     <option value="standard" data-price="50">Standard ($50 per night, Max 10 days)</option>
@@ -199,7 +172,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="wifi" name="wifi" data-price="10">
                 <label class="form-check-label" for="wifi">WiFi ($10 )</label>
-                </div>
+            </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast" data-price="15">
                 <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
@@ -207,7 +180,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="pool" name="pool" data-price="20">
                 <label class="form-check-label" for="pool">Pool Access ($20)</label>
-            </div>
             </div>
 
             <div class="text-end fw-bold mt-3">

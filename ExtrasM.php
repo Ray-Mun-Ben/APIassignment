@@ -1,7 +1,7 @@
 <?php
 require_once 'database.php';
 
-class Extras {
+class ExtrasM {
     private $pdo;
     
     public function __construct($pdo) {

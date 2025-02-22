@@ -1,8 +1,16 @@
 <?php
 require_once 'database.php';
+require_once 'User.php';
+require_once 'ExtrasM.php';
+
 session_start();
 
-$pdo = (new Database())->getConnection();
+$database = new Database();
+$pdo = $database->connect();
+
+$user = new User($pdo);
+$extras = new ExtrasM($pdo);
+
 $user_id = $_SESSION['user_id'] ?? null;
 
 if (!$user_id) {
@@ -16,23 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $meal_plan_price = ($_POST['meal_plan'] != '0') ? 20 : 0;
     $gym_activity_price = count($_POST['gym_activities'] ?? []) * 25;
 
-    $stmt = $pdo->prepare("INSERT INTO extras (user_id, meal_plan, meal_plan_price, gym_access, gym_activity, gym_activity_price) 
-        VALUES (:user_id, :meal_plan, :meal_plan_price, :gym_access, :gym_activity, :gym_activity_price) 
-        ON DUPLICATE KEY UPDATE meal_plan = :meal_plan, meal_plan_price = :meal_plan_price, gym_access = :gym_access, gym_activity = :gym_activity, gym_activity_price = :gym_activity_price");
-
-    if ($stmt->execute([
-        ':user_id' => $user_id,
-        ':meal_plan' => $meal_plan,
-        ':meal_plan_price' => $meal_plan_price,
-        ':gym_access' => $gym_access,
-        ':gym_activity' => $gym_activities,
-        ':gym_activity_price' => $gym_activity_price
-    ])) {
-        echo "Extras saved successfully!";
-    } else {
-        echo "Error: " . implode(" ", $stmt->errorInfo());
-    }
+    $extras->saveExtras($user_id, $meal_plan, $meal_plan_price, $gym_access, $gym_activities, $gym_activity_price);
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Extras Selection</title>
     <link rel="stylesheet" href="styles2.css">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
@@ -100,9 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-    <div class="container mt-5">
-        <h2 class="text-center">Select Your Extras</h2>
-
         <form id="extrasForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light mt-3 mb-5">
             <h4>Extra Amenities</h4>
             <div class="mb-2">
@@ -141,9 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn btn-success mt-3">Save Extras</button>
         </form>
     </div>
+
     <div class="fixed-bottom text-end p-3 bg-dark text-white fw-bold shadow-sm" style="bottom: 10px;">
         Total: <span id="totalPrice">$0.00</span>
     </div>
+
     <script>
         function updateTotal() {
             let total = 0;
@@ -156,9 +148,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
             document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
         }
+        
         document.querySelectorAll('input[type=checkbox], select').forEach(el => {
             el.addEventListener('change', updateTotal);
         });
+
+        document.addEventListener("DOMContentLoaded", updateTotal);
     </script>
 </body>
 </html>
