@@ -27,5 +27,15 @@ class Reservation {
         $stmt->execute([':user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function getLatestReservation($user_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM reservations 
+            WHERE user_id = :user_id 
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->execute([':user_id' => $user_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
 }
 ?>

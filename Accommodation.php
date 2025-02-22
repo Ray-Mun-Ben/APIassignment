@@ -35,5 +35,15 @@ class Accommodation {
         $stmt->execute([':user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function getLatestAccommodation($user_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT room_type, room_price, days, wifi, breakfast, pool, reservation_date 
+            FROM accommodations 
+            WHERE user_id = :user_id 
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->execute([':user_id' => $user_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
 }
 ?>

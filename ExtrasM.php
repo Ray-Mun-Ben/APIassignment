@@ -30,5 +30,15 @@ class ExtrasM {
         $stmt->execute([':user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function getUserExtras($user_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT meal_plan, meal_plan_price, gym_activity, gym_activity_price 
+            FROM extras 
+            WHERE user_id = :user_id 
+            ORDER BY id DESC LIMIT 1
+        ");
+        $stmt->execute([':user_id' => $user_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
 }
 ?>
