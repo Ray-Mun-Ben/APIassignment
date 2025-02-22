@@ -59,6 +59,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Your Stay</title>
+    <link rel="stylesheet" href="styles2.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/custom.css">
     <script>
@@ -118,30 +122,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                        <a class="nav-link" href="grid.php">GridTest</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">ExistingUsers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="extras.php">Extra Amenities</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="login.php">Sign In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="UserAcc.php">UserAccomodation</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
+                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
                     <li class="nav-item">
                         <form method="POST" action="">
                             <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>

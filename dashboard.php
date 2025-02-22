@@ -41,19 +41,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="css/custom.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                <img src="images/logo.png" alt="Feel Fresh Resort" height="50">
-            </a>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Feel Fresh Resort</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="grid.php">GridTest</a></li>
                     <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="extras.php">Extras</a></li>
-                    <li class="nav-item"><a class="nav-link" href="logout.php">Sign Out</a></li>
+                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Existing Users</a></li>
+                    <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
+                    <li class="nav-item"><a class="nav-link" href="login.php">Sign In</a></li>
+                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Accommodation</a></li>
+                    <li class="nav-item">
+                        <form method="POST" action="">
+                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                        </form>
+                    </li>
                 </ul>
             </div>
         </div>

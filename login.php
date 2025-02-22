@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['logged_in'] = true;
 
             // Redirect to the dashboard or home page
-            header("Location: dashboard.php");
+            header("Location: grid.php");
             exit();
         } else {
             $errorMessage = "Invalid email or password.";

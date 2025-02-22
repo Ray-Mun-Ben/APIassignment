@@ -89,27 +89,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Summary</title>
+    <link rel="stylesheet" href="styles2.css">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Feel Fresh Resort</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="grid.php">Grid</a></li>
-                <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="extras.php">Extras</a></li>
-                <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Summary</a></li>
-                <li class="nav-item"><a class="nav-link btn btn-danger text-white" href="logout.php">Sign Out</a></li>
-            </ul>
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
+                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
+                    <li class="nav-item">
+                        <form method="POST" action="">
+                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 <div class="container mt-5">
     <div class="card shadow p-4">
@@ -129,20 +133,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
             </div>
             <div class="col-md-6">
                 <h4>Accommodation Details</h4>
-                <?php if ($accommodation): ?>
-                    <p><strong>Room Type:</strong> <?= htmlspecialchars($accommodation['room_type'] ?? 'N/A') ?></p>
-                    <p><strong>Room Price Per Night:</strong> <?= isset($accommodation['room_price']) ? "$" . htmlspecialchars($accommodation['room_price']) : '-' ?></p>
-                    <p><strong>Number of Days:</strong> <?= htmlspecialchars($accommodation['days'] ?? 'N/A') ?></p>
-                    <p><strong>Total Room Cost:</strong> <?= isset($accommodation['room_price']) ? "$" . ($accommodation['room_price'] * ($accommodation['days'] ?? 1)) : '-' ?></p>
-                    <p><strong>Reservation Date:</strong> <?= htmlspecialchars($accommodation['reservation_date'] ?? 'N/A') ?></p>
-                    <p><strong>WiFi Access:</strong> <?= $accommodation['wifi'] ? 'Yes' : 'No' ?></p>
-                    <p><strong>Breakfast Included:</strong> <?= $accommodation['breakfast'] ? 'Yes' : 'No' ?></p>
-                    <p><strong>Pool Access:</strong> <?= $accommodation['pool'] ? 'Yes' : 'No' ?></p>
-                <?php else: ?>
-                    <p class="text-danger">No accommodation details found.</p>
-                <?php endif; ?>
+                <p><strong>Room Type:</strong> <?= htmlspecialchars($accommodation['room_type'] ?? 'N/A') ?></p>
+                <p><strong>Room Price Per Night:</strong> <?= isset($accommodation['room_price']) ? "$" . htmlspecialchars($accommodation['room_price']) : '-' ?></p>
+                <p><strong>Number of Days:</strong> <?= htmlspecialchars($accommodation['days'] ?? 'N/A') ?></p>
+                <p><strong>Total Room Cost:</strong> <?= isset($accommodation['room_price']) ? "$" . ($accommodation['room_price'] * ($accommodation['days'] ?? 1)) : '-' ?></p>
             </div>
         </div>
+
+        <!-- ✅ Extras Section Added Here -->
+        <div class="row mt-4">
+    <div class="col-md-6">
+        <h4>Extras Selected</h4>
+        <?php if ($extras): ?>
+            <p><strong>Meal Plan:</strong> <?= htmlspecialchars($extras['meal_plan'] ?? 'N/A') ?></p>
+            <p><strong>Meal Plan Price:</strong> <?= isset($extras['meal_plan_price']) ? "$" . htmlspecialchars($extras['meal_plan_price']) : '-' ?></p>
+            <p><strong>Gym Activities:</strong> <?= htmlspecialchars($extras['gym_activity'] ?? 'N/A') ?></p>
+            <p><strong>Gym Activity Price:</strong> <?= isset($extras['gym_activity_price']) ? "$" . htmlspecialchars($extras['gym_activity_price']) : '-' ?></p>
+        <?php else: ?>
+            <p class="text-danger">No extras selected.</p>
+        <?php endif; ?>
+    </div>
+</div>
 
         <div class="text-center mt-4">
             <form method="POST">
@@ -154,8 +165,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
         </div>
     </div>
 </div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
