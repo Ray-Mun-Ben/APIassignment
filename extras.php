@@ -21,11 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $meal_plan = $_POST['meal_plan'] ?? '';
     $gym_access = isset($_POST['gym_access']) ? 1 : 0;
     $gym_activities = isset($_POST['gym_activities']) ? implode(", ", $_POST['gym_activities']) : '';
-    $meal_plan_price = ($_POST['meal_plan'] != '0') ? 20 : 0;
-    $gym_activity_price = count($_POST['gym_activities'] ?? []) * 25;
+    $meal_plan_price = ($meal_plan != '0') ? 20 : 0;
+    $gym_activity_price = count($_POST['gym_activities'] ?? []) * 25; // ✅ Ensure numeric value
 
-    $extras->saveExtras($user_id, $meal_plan, $meal_plan_price, $gym_access, $gym_activities, $gym_activity_price);
+    $extrasObj = new ExtrasM($pdo);
+    $extrasObj->saveExtras($user_id, $meal_plan, $meal_plan_price, $gym_access, $gym_activities);
 }
+
 
 ?>
 
