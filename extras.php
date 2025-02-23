@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $extrasObj->saveExtras($user_id, $meal_plan, $meal_plan_price, $gym_access, $gym_activities);
 }
 
+header("Location: UserAcc.php");
+exit();
+
 
 ?>
 

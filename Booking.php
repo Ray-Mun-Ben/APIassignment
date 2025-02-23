@@ -10,16 +10,22 @@ class Booking {
 
     // ✅ Confirm a booking by copying details from reservations to bookings
     public function confirmBooking($userId) {
+        // Ensure the user has only one active booking (delete old ones)
+        $this->pdo->prepare("DELETE FROM bookings WHERE user_id = :user_id")->execute([':user_id' => $userId]);
+    
+        // Insert a new booking based on the latest reservation
         $stmt = $this->pdo->prepare("
             INSERT INTO bookings (user_id, room_type, room_price, days, wifi, breakfast, pool, reservation_date, 
                                   meal_plan, meal_plan_price, gym_activity, gym_activity_price)
             SELECT user_id, room_type, room_price, days, wifi, breakfast, pool, reservation_date, 
                    meal_plan, meal_plan_price, gym_activity, gym_activity_price
-            FROM reservations 
+            FROM reservations
             WHERE user_id = :user_id
+            ORDER BY id DESC LIMIT 1
         ");
-        $stmt->execute([':user_id' => $userId]);
+        return $stmt->execute([':user_id' => $userId]);
     }
+    
 
     // ✅ Cancel a booking by deleting from the bookings table
     public function cancelBooking($userId) {

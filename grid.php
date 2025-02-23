@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Save accommodation using the class
     $accommodation->saveAccommodation($user_id, $room_type, $room_price, $days, $wifi, $breakfast, $pool, $reservation_date);
 
-    header("Location: receipt.php");
+    header("Location: extras.php");
     exit();
 }
 

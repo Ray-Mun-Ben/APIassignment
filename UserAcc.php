@@ -3,6 +3,7 @@ require_once 'database.php';
 require_once 'User.php';
 require_once 'ExtrasM.php';
 require_once 'Accommodation.php';
+require_once 'Reservation.php';
 
 session_start();
 
@@ -12,6 +13,7 @@ $pdo = $database->connect();
 $user = new User($pdo);
 $extras = new ExtrasM($pdo);
 $accommodation = new Accommodation($pdo);
+$reservationObj = new Reservation($pdo);
 
 $user_id = $_SESSION['user_id'] ?? null;
 
@@ -19,53 +21,26 @@ if (!$user_id) {
     die("Error: User ID not found in session.");
 }
 
+// ✅ Fetch user details
 $user_details = $user->getUserById($user_id);
+
+// ✅ Fetch the latest accommodation details
 $accommodation_details = $accommodation->getLatestAccommodation($user_id);
+
+// ✅ Fetch the latest extras details
 $extras_details = $extras->getUserExtras($user_id);
 
-// Fetch reservation record
-$res_stmt = $pdo->prepare("SELECT id FROM reservations WHERE user_id = :user_id LIMIT 1");
-$res_stmt->execute([':user_id' => $user_id]);
-$reservation = $res_stmt->fetch(PDO::FETCH_ASSOC);
+// ✅ Fetch the most recent reservation for the user
+$reservation = $reservationObj->getLatestReservation($user_id);
+$reservationStatus = $reservation['status'] ?? 'No Reservation Made'; 
 
 $reservationSuccess = false;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
-    if (!$reservation) {
-        // Insert new reservation
-        $insert_stmt = $pdo->prepare("
-            INSERT INTO reservations (user_id, room_type, room_price, days, wifi, breakfast, pool, reservation_date, 
-                                      meal_plan, meal_plan_price, gym_activity, gym_activity_price)
-            VALUES (:user_id, :room_type, :room_price, :days, :wifi, :breakfast, :pool, :reservation_date, 
-                    :meal_plan, :meal_plan_price, :gym_activity, :gym_activity_price)");
-    } else {
-        // Update existing reservation
-        $insert_stmt = $pdo->prepare("
-            UPDATE reservations SET 
-                room_type = :room_type, room_price = :room_price, days = :days, wifi = :wifi, breakfast = :breakfast, 
-                pool = :pool, reservation_date = :reservation_date, 
-                meal_plan = :meal_plan, meal_plan_price = :meal_plan_price, 
-                gym_activity = :gym_activity, gym_activity_price = :gym_activity_price
-            WHERE user_id = :user_id");
-    }
-
-    $insert_stmt->execute([
-        ':user_id' => $user_id,
-        ':room_type' => $accommodation_details['room_type'] ?? null,
-        ':room_price' => $accommodation_details['room_price'] ?? null,
-        ':days' => $accommodation_details['days'] ?? 1,
-        ':wifi' => $accommodation_details['wifi'] ?? 0,
-        ':breakfast' => $accommodation_details['breakfast'] ?? 0,
-        ':pool' => $accommodation_details['pool'] ?? 0,
-        ':reservation_date' => $accommodation_details['reservation_date'] ?? null,
-        ':meal_plan' => $extras_details['meal_plan'] ?? null,
-        ':meal_plan_price' => $extras_details['meal_plan_price'] ?? null,
-        ':gym_activity' => $extras_details['gym_activity'] ?? null,
-        ':gym_activity_price' => $extras_details['gym_activity_price'] ?? null,
-    ]);
-
-    $reservationSuccess = true;
+    // Always create a new reservation instead of updating
+    $reservationObj->createReservation($user_id, $accommodation_details, $extras_details);
 }
+
 
 ?>
 
@@ -80,25 +55,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
-                    <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
-                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
-                    <li class="nav-item">
-                        <form method="POST" action="">
-                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
+                <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
+                <li class="nav-item">
+                    <form method="POST" action="">
+                        <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                    </form>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
 <div class="container mt-5">
     <div class="card shadow p-4">
@@ -109,6 +84,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
                 Your reservation has been successfully made!
             </div>
         <?php endif; ?>
+        <div class="row mt-4">
+    <div class="col-md-6">
+        <h4>Reservation Status</h4>
+        <?php if ($reservationStatus === 'accepted'): ?>
+            <p class="text-success"><strong>Status:</strong> Reservation Accepted</p>
+        <?php elseif ($reservationStatus === 'rejected'): ?>
+            <p class="text-danger"><strong>Status:</strong> Reservation Rejected</p>
+        <?php elseif ($reservationStatus === 'pending'): ?>
+            <p class="text-warning"><strong>Status:</strong> Reservation Pending</p>
+        <?php else: ?>
+            <p class="text-secondary"><strong>Status:</strong> No Reservation Made</p>
+        <?php endif; ?>
+    </div>
+</div>
 
         <div class="row">
             <div class="col-md-6">
@@ -128,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
             </div>
         </div>
 
-        <!-- ✅ Extras Section Added Here -->
+        <!-- ✅ Extras Section -->
         <div class="row mt-4">
             <div class="col-md-6">
                 <h4>Extras Selected</h4>

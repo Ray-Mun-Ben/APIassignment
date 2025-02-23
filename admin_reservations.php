@@ -28,28 +28,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["approve_reservation"]
     if ($reservationObj->approveReservation($reservationId)) {
         $user = $userObj->getUserById($userId);
 
-        // Send confirmation email
+        // ✅ Automatically create a booking after approval
+        $bookingObj->confirmBooking($userId);
+
+        // ✅ Send confirmation email
         $subject = "Your Reservation Has Been Accepted!";
         $message = "
-            <p>Dear <strong>{$user['name']}</strong>,</p>
-            <p>Your reservation at <strong>Feel Fresh Resort</strong> has been successfully accepted!</p>
-            <p><strong>⚠ Please make full payment within 5 hours</strong> to secure your booking.</p>
-            <p>Failure to pay on time will result in automatic cancellation.</p>
-            <p><strong>Repeated non-payments will result in a ban.</strong></p>
-            <p>Kindly make your payment at the reception or via online transfer.</p>
-            <p>Best regards,<br><strong>Feel Fresh Resort Team</strong></p>
+            Dear {$user['name']},<br><br>
+            Your reservation at Feel Fresh Resort has been successfully accepted!<br>
+            Please make full payment within **5 hours** to secure your booking.<br>
+            Failure to pay on time will result in automatic cancellation.<br><br>
+            **Repeated non-payments will result in a ban.**<br>
+            Kindly make your payment at the reception or via online transfer.<br><br>
+            Best regards,<br>
+            Feel Fresh Resort Team
         ";
 
-        if ($mailer->sendMail($user['email'], $subject, $message)) {
-            header("Location: admin_reservations.php?success=Reservation accepted and email sent.");
-            exit();
-        } else {
-            $error = "Reservation approved, but email could not be sent.";
-        }
+        $mailer->sendMail($user['email'], $subject, $message);
+        header("Location: admin_reservations.php?success=Reservation accepted and email sent.");
+        exit();
     } else {
         $error = "Failed to approve reservation.";
     }
 }
+
 
 // Handle reservation rejection
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])) {

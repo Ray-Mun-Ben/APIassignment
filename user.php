@@ -171,20 +171,25 @@ public function getUserById($userId) {
 }
 
 public function incrementUnpaidCount($userId) {
-    $stmt = $this->pdo->prepare("UPDATE users SET unpaid_reservations = unpaid_reservations + 1 WHERE id = ?");
-    $stmt->execute([$userId]);
+    $stmt = $this->pdo->prepare("UPDATE users SET unpaid_reservations = unpaid_reservations + 1 WHERE id = :user_id");
+    $stmt->execute([':user_id' => $userId]);
 }
 
 public function shouldBanUser($userId) {
-    $stmt = $this->pdo->prepare("SELECT unpaid_reservations FROM users WHERE id = ?");
-    $stmt->execute([$userId]);
-    return $stmt->fetchColumn() >= 3; // Ban after 3 unpaid reservations
+    $stmt = $this->pdo->prepare("SELECT unpaid_reservations FROM users WHERE id = :user_id");
+    $stmt->execute([':user_id' => $userId]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $result && $result['unpaid_reservations'] >= 3; // Ban if unpaid reservations reach 3
 }
+
 
 public function banUser($userId) {
     $stmt = $this->pdo->prepare("UPDATE users SET status = 'banned' WHERE id = ?");
     $stmt->execute([$userId]);
 }
+
+
 
 
 
