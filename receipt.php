@@ -112,31 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
         </div>
     </div>
 </nav>
-<!-- ✅ Progress Tracker (Place at the Top Below Navbar) -->
-<div class="container mt-3">
-    <ul class="nav nav-pills nav-justified">
-        <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'grid.php' ? 'active' : 'disabled' ?>" href="grid.php">
-                Step 1: Select Room
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'extras.php' ? 'active' : 'disabled' ?>" href="extras.php">
-                Step 2: Choose Extras
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'UserAcc.php' ? 'active' : 'disabled' ?>" href="UserAcc.php">
-                Step 3: Review & Reserve
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'receipt.php' ? 'active' : 'disabled' ?>" href="receipt.php">
-                Step 4: Get Receipt
-            </a>
-        </li>
-    </ul>
-</div>
+
     <div class="container mt-4">
         <h2 class="text-center">Booking Receipt</h2>
         <hr>

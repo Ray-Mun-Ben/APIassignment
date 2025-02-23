@@ -28,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $extrasObj->saveExtras($user_id, $meal_plan, $meal_plan_price, $gym_access, $gym_activities);
 }
 
-header("Location: UserAcc.php");
-exit();
+$extrasSaved = true; // Indicate that extras were saved successfully.
+
 
 
 ?>
@@ -52,7 +52,7 @@ exit();
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
                     <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
                     <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
                     <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
@@ -66,27 +66,23 @@ exit();
     </nav>
 
 <!-- ✅ Progress Tracker (Place at the Top Below Navbar) -->
+<!-- ✅ Animated Progress Tracker -->
 <div class="container mt-3">
-    <ul class="nav nav-pills nav-justified">
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <ul class="nav nav-pills nav-justified mt-2">
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'grid.php' ? 'active' : 'disabled' ?>" href="grid.php">
-                Step 1: Select Room
-            </a>
+            <a class="nav-link" id="step1" href="grid.php">Step 1: Select Room</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'extras.php' ? 'active' : 'disabled' ?>" href="extras.php">
-                Step 2: Choose Extras
-            </a>
+            <a class="nav-link" id="step2" href="extras.php">Step 2: Choose Extras</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'UserAcc.php' ? 'active' : 'disabled' ?>" href="UserAcc.php">
-                Step 3: Review & Reserve
-            </a>
+            <a class="nav-link" id="step3" href="UserAcc.php">Step 3: Review & Reserve</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'receipt.php' ? 'active' : 'disabled' ?>" href="receipt.php">
-                Step 4: Get Receipt
-            </a>
+            <a class="nav-link" id="step4" href="receipt.php">Step 4: Get Receipt</a>
         </li>
     </ul>
 </div>
@@ -160,7 +156,13 @@ exit();
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-success mt-3">Save Extras</button>
+            <div class="text-center mt-3">
+    <button type="submit" class="btn btn-primary">Save Extras</button>
+    <?php if (isset($extrasSaved) && $extrasSaved): ?>
+        <a href="UserAcc.php" class="btn btn-success">Next: Review & Reserve</a>
+    <?php endif; ?>
+</div>
+
         </form>
     </div>
 
@@ -187,5 +189,7 @@ exit();
 
         document.addEventListener("DOMContentLoaded", updateTotal);
     </script>
+        <script src="js/progress.js"></script>
+
 </body>
 </html>

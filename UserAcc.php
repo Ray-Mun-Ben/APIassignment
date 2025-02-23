@@ -55,48 +55,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
                     <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
                     <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
                     <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
-                    <form method="POST" action="">
-                        <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
-                    </form>
-                </li>
-            </ul>
+                        <form method="POST" action="">
+                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 <!-- ✅ Progress Tracker (Place at the Top Below Navbar) -->
+<!-- ✅ Animated Progress Tracker -->
 <div class="container mt-3">
-    <ul class="nav nav-pills nav-justified">
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <ul class="nav nav-pills nav-justified mt-2">
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'grid.php' ? 'active' : 'disabled' ?>" href="grid.php">
-                Step 1: Select Room
-            </a>
+            <a class="nav-link" id="step1" href="grid.php">Step 1: Select Room</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'extras.php' ? 'active' : 'disabled' ?>" href="extras.php">
-                Step 2: Choose Extras
-            </a>
+            <a class="nav-link" id="step2" href="extras.php">Step 2: Choose Extras</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'UserAcc.php' ? 'active' : 'disabled' ?>" href="UserAcc.php">
-                Step 3: Review & Reserve
-            </a>
+            <a class="nav-link" id="step3" href="UserAcc.php">Step 3: Review & Reserve</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'receipt.php' ? 'active' : 'disabled' ?>" href="receipt.php">
-                Step 4: Get Receipt
-            </a>
+            <a class="nav-link" id="step4" href="receipt.php">Step 4: Get Receipt</a>
         </li>
     </ul>
 </div>
@@ -181,6 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
     </div>
 </div>
 
+<script src="js/progress.js"></script>
 
 </body>
 </html>
