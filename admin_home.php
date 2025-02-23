@@ -27,6 +27,9 @@ if (!isset($_SESSION['admin_id'])) {
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                        <a class="nav-link" href="admin_home.php">Home</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="admin.php">Manage Bookings</a>
                     </li>

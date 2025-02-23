@@ -53,11 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin_home.php">Admin Home</a>
+                <li class="nav-item">
+                        <a class="nav-link" href="admin_home.php">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="admin.php">Manage Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="Admin_dashboard.php">Admin Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <form method="POST" action="admin_logout.php">
@@ -68,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
             </div>
         </div>
     </nav>
-
     <!-- Welcome Message -->
     <div class="container text-center mt-5">
         <h1>Welcome, <?php echo $adminName; ?>!</h1>
