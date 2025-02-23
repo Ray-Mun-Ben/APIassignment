@@ -33,7 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container mt-5">
         <h2>Admin Login</h2>
+
+        <!-- ✅ Show logout message -->
+        <?php if (isset($_GET['logout'])): ?>
+            <div class="alert alert-success">You have been logged out successfully.</div>
+        <?php endif; ?>
+
         <?php if (isset($error)) { echo "<p class='text-danger'>$error</p>"; } ?>
+
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label">Username</label>
