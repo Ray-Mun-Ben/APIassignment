@@ -52,10 +52,10 @@ exit();
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
                     <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
                     <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
-                    <li class="nav-item">
+                    <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
                         <form method="POST" action="">
                             <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
                         </form>
@@ -64,6 +64,33 @@ exit();
             </div>
         </div>
     </nav>
+
+<!-- ✅ Progress Tracker (Place at the Top Below Navbar) -->
+<div class="container mt-3">
+    <ul class="nav nav-pills nav-justified">
+        <li class="nav-item">
+            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'grid.php' ? 'active' : 'disabled' ?>" href="grid.php">
+                Step 1: Select Room
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'extras.php' ? 'active' : 'disabled' ?>" href="extras.php">
+                Step 2: Choose Extras
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'UserAcc.php' ? 'active' : 'disabled' ?>" href="UserAcc.php">
+                Step 3: Review & Reserve
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'receipt.php' ? 'active' : 'disabled' ?>" href="receipt.php">
+                Step 4: Get Receipt
+            </a>
+        </li>
+    </ul>
+</div>
+
 
     <div class="container mt-5">
         <h2 class="text-center">Select Your Extras</h2>

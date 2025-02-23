@@ -58,11 +58,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
     $reservationId = $_POST["reservation_id"];
     $userId = $_POST["user_id"];
 
+    // ✅ Increase user's unpaid reservation count
     $userObj->incrementUnpaidCount($userId);
+    
+    // ✅ Check if the user should be banned
     if ($userObj->shouldBanUser($userId)) {
         $userObj->banUser($userId);
     }
 
+    // ✅ Delete the reservation
     if ($reservationObj->rejectReservation($reservationId)) {
         header("Location: admin_reservations.php?success=Reservation rejected.");
         exit();
@@ -70,6 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
         $error = "Failed to reject reservation.";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
