@@ -49,14 +49,23 @@ class Reservation {
     
     
     public function approveReservation($reservationId) {
-        $stmt = $this->pdo->prepare("UPDATE reservations SET status = 'accepted' WHERE id = ?");
-        return $stmt->execute([$reservationId]);
+        $stmt = $this->pdo->prepare("
+            UPDATE reservations 
+            SET status = 'accepted' 
+            WHERE id = :id
+        ");
+        return $stmt->execute([':id' => $reservationId]);
     }
     
     public function rejectReservation($reservationId) {
-        $stmt = $this->pdo->prepare("DELETE FROM reservations WHERE id = ?");
-        return $stmt->execute([$reservationId]);
+        $stmt = $this->pdo->prepare("
+            UPDATE reservations 
+            SET status = 'rejected' 
+            WHERE id = :id
+        ");
+        return $stmt->execute([':id' => $reservationId]);
     }
+    
     
 }
 ?>
