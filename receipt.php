@@ -89,6 +89,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt</title>
+    <link rel="stylesheet" href="styles2.css">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -112,7 +114,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
         </div>
     </div>
 </nav>
-
+<div class="container mt-3">
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <ul class="nav nav-pills nav-justified mt-2">
+        <li class="nav-item">
+            <a class="nav-link" id="step1" href="grid.php">Step 1: Select Room</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="step2" href="extras.php">Step 2: Choose Extras</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="step3" href="UserAcc.php">Step 3: Review & Reserve</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="step4" href="receipt.php">Step 4: Get Receipt</a>
+        </li>
+    </ul>
+</div>
     <div class="container mt-4">
         <h2 class="text-center">Booking Receipt</h2>
         <hr>
@@ -157,5 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
             </form>
         </div>
     </div>
-</body>A
+    <script src="progress.js"></script>
+
+</body>
 </html>

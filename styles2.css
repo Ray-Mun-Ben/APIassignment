@@ -1,136 +1,83 @@
-/* General Styling */
+/* 🔥 Lava Lamp Animated Background */
+@keyframes lavaFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 body {
     font-family: 'Poppins', sans-serif;
-    background: #f4f7f6;
-    color: #333;
-}
-
-/* Navbar Styling */
-.navbar {
-    background: linear-gradient(to right, #4b6cb7, #182848);
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-.navbar-brand {
-    color: white !important;
-    font-weight: bold;
-}
-.nav-link {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-.navbar-toggler {
-    border: none;
-}
-.navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-}
-
-/* Card Styling (Grid & Extras) */
-.card {
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-    border-radius: 10px;
-}
-.card:hover {
-    transform: scale(1.05);
-}
-.card-title {
-    font-weight: bold;
-    color: #333;
-}
-.card-text {
-    font-size: 14px;
-    color: #777;
-}
-
-/* Form Inputs */
-.form-control {
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    padding: 10px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.form-label {
-    font-weight: bold;
-    color: #555;
-}
-
-/* Button Styling */
-.btn-primary {
-    background-color: #4b6cb7;
-    border-color: #4b6cb7;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 8px;
-}
-.btn-primary:hover {
-    background-color: #182848;
-    border-color: #182848;
-}
-.btn-success {
-    background-color: #28a745;
-    border-radius: 8px;
-}
-.btn-danger {
-    background-color: #dc3545;
-    border-radius: 8px;
-}
-
-/* Price Summary Box */
-.price-summary {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    text-align: center;
-}
-
-/* Tables (Receipt & User Summary) */
-.table {
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 10px;
+    background: radial-gradient(circle, #ff758c, #ff7eb3, #ff94c2, #ff99d3, #ffb3e1);
+    background-size: 400% 400%;
+    animation: lavaFlow 10s infinite alternate ease-in-out;
+    color: white;
+    position: relative;
     overflow: hidden;
 }
-.table th {
-    background: #4b6cb7;
-    color: white;
-    text-align: center;
-}
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(0, 0, 0, 0.05);
-}
 
-/* Footer */
-.footer {
-    background: #182848;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    margin-top: 20px;
-    font-size: 14px;
+/* ✅ Soft Glow Overlay */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    filter: blur(60px);
+    opacity: 0.4;
+    z-index: -1;
+    animation: lavaFlow 12s infinite alternate ease-in-out;
 }
 
 /* ✅ Progress Bar Container */
 .progress-container {
     width: 100%;
-    background-color: #e0e0e0;
+    background: linear-gradient(to right, #c3eaff, #88c4ff);
     border-radius: 25px;
-    height: 10px;
+    height: 12px;
     position: relative;
     margin-top: 20px;
     overflow: hidden;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* ✅ Animated Progress Bar */
 .progress-bar {
     height: 100%;
     width: 0%;
-    background-color: #007bff;
-    transition: width 0.6s ease-in-out;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    transition: width 1.5s ease-in-out;
     border-radius: 25px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ Step Navigation Links */
+.nav-pills .nav-link {
+    color: white !important;
+    font-weight: bold;
+    transition: background 0.3s ease-in-out;
+    border-radius: 50px;
+}
+
+/* ✅ Active Step */
+.nav-pills .nav-link.active {
+    background: linear-gradient(to right, #0056b3, #003f7f) !important;
+    color: #fff !important;
+}
+
+/* ✅ Inactive Steps */
+.nav-pills .nav-link.disabled {
+    background: rgba(255, 255, 255, 0.3);
+    color: #bbb !important;
+}
+
+/* ✅ Progress Tracker Section */
+.progress-section {
+    background: linear-gradient(to right, #4b6cb7, #182848);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    margin-bottom: 15px;
 }

@@ -189,7 +189,23 @@ $extrasSaved = true; // Indicate that extras were saved successfully.
 
         document.addEventListener("DOMContentLoaded", updateTotal);
     </script>
-        <script src="js/progress.js"></script>
+        <script src="progress.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.fog.min.js"></script>
+<script>
+VANTA.FOG({
+  el: "body", // or "#vanta-bg" if using a div
+  mouseControls: true,
+  touchControls: true,
+  gyroControls: false,
+  minHeight: 200.00,
+  minWidth: 200.00,
+  highlightColor: 0xb3dcea,
+  midtoneColor: 0x5af3f4,
+  lowlightColor: 0x92e9f2,
+  baseColor: 0xf7f7f7
+});
+</script>
 
 </body>
 </html>
