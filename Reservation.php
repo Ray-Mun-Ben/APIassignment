@@ -36,6 +36,27 @@ class Reservation {
         $stmt->execute([':user_id' => $user_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public function getAllPendingReservations() {
+        $stmt = $this->pdo->prepare("
+            SELECT r.id, r.user_id, r.room_type, r.days, r.reservation_date, u.username, u.email
+            FROM reservations r
+            JOIN users u ON r.user_id = u.id
+            WHERE r.status = 'pending'
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    
+    public function approveReservation($reservationId) {
+        $stmt = $this->pdo->prepare("UPDATE reservations SET status = 'accepted' WHERE id = ?");
+        return $stmt->execute([$reservationId]);
+    }
+    
+    public function rejectReservation($reservationId) {
+        $stmt = $this->pdo->prepare("DELETE FROM reservations WHERE id = ?");
+        return $stmt->execute([$reservationId]);
+    }
     
 }
 ?>

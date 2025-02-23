@@ -170,6 +170,21 @@ public function getUserById($userId) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+public function incrementUnpaidCount($userId) {
+    $stmt = $this->pdo->prepare("UPDATE users SET unpaid_reservations = unpaid_reservations + 1 WHERE id = ?");
+    $stmt->execute([$userId]);
+}
+
+public function shouldBanUser($userId) {
+    $stmt = $this->pdo->prepare("SELECT unpaid_reservations FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    return $stmt->fetchColumn() >= 3; // Ban after 3 unpaid reservations
+}
+
+public function banUser($userId) {
+    $stmt = $this->pdo->prepare("UPDATE users SET status = 'banned' WHERE id = ?");
+    $stmt->execute([$userId]);
+}
 
 
 

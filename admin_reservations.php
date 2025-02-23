@@ -2,7 +2,7 @@
 require_once 'database.php';
 require_once 'Reservation.php';
 require_once 'User.php';
-require_once 'Mailer.php';
+require_once 'mailerClass.php'; // ✅ Use the correct filename
 
 session_start();
 
@@ -25,26 +25,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["approve_reservation"]
     $reservationId = $_POST["reservation_id"];
     $userId = $_POST["user_id"];
 
-    // Update reservation status to 'Accepted'
     if ($reservationObj->approveReservation($reservationId)) {
         $user = $userObj->getUserById($userId);
 
         // Send confirmation email
         $subject = "Your Reservation Has Been Accepted!";
         $message = "
-            Dear {$user['name']},<br><br>
-            Your reservation at Feel Fresh Resort has been successfully accepted!<br>
-            Please make full payment within **5 hours** to secure your booking.<br>
-            Failure to pay on time will result in automatic cancellation.<br><br>
-            **Repeated non-payments will result in a ban.**<br>
-            Kindly make your payment at the reception or via online transfer.<br><br>
-            Best regards,<br>
-            Feel Fresh Resort Team
+            <p>Dear <strong>{$user['name']}</strong>,</p>
+            <p>Your reservation at <strong>Feel Fresh Resort</strong> has been successfully accepted!</p>
+            <p><strong>⚠ Please make full payment within 5 hours</strong> to secure your booking.</p>
+            <p>Failure to pay on time will result in automatic cancellation.</p>
+            <p><strong>Repeated non-payments will result in a ban.</strong></p>
+            <p>Kindly make your payment at the reception or via online transfer.</p>
+            <p>Best regards,<br><strong>Feel Fresh Resort Team</strong></p>
         ";
 
-        $mailer->sendMail($user['email'], $subject, $message);
-        header("Location: admin_reservations.php?success=Reservation accepted and email sent.");
-        exit();
+        if ($mailer->sendMail($user['email'], $subject, $message)) {
+            header("Location: admin_reservations.php?success=Reservation accepted and email sent.");
+            exit();
+        } else {
+            $error = "Reservation approved, but email could not be sent.";
+        }
     } else {
         $error = "Failed to approve reservation.";
     }
@@ -55,15 +56,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
     $reservationId = $_POST["reservation_id"];
     $userId = $_POST["user_id"];
 
-    // Increase the user's unpaid reservation count
     $userObj->incrementUnpaidCount($userId);
-    
-    // Check if the user should be banned
     if ($userObj->shouldBanUser($userId)) {
         $userObj->banUser($userId);
     }
 
-    // Delete the reservation
     if ($reservationObj->rejectReservation($reservationId)) {
         header("Location: admin_reservations.php?success=Reservation rejected.");
         exit();
@@ -71,7 +68,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
         $error = "Failed to reject reservation.";
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -93,18 +89,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="admin_home.php">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin.php">Manage Bookings</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin_reservations.php">Manage Reservations</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="Admin_dashboard.php">Admin Dashboard</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="admin_home.php">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin.php">Manage Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="admin_reservations.php">Manage Reservations</a></li>
+                <li class="nav-item"><a class="nav-link" href="Admin_dashboard.php">Admin Dashboard</a></li>
                 <li class="nav-item">
                     <form method="POST" action="admin_logout.php">
                         <button type="submit" name="logout" class="btn btn-danger">Sign Out</button>

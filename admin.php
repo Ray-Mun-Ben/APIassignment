@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_booking'])) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="admin_home.php">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="admin_reservations.php">Manage Reservations</a></li>
                     <li class="nav-item"><a class="nav-link active" href="admin.php">Manage Bookings</a></li>
                     <li class="nav-item"><a class="nav-link" href="Admin_dashboard.php">Admin Dashboard</a></li>
                     <li class="nav-item">
