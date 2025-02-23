@@ -117,30 +117,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </nav>
 
 <!-- ✅ Progress Tracker (Place at the Top Below Navbar) -->
+<!-- ✅ Animated Progress Tracker -->
 <div class="container mt-3">
-    <ul class="nav nav-pills nav-justified">
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <ul class="nav nav-pills nav-justified mt-2">
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'grid.php' ? 'active' : 'disabled' ?>" href="grid.php">
-                Step 1: Select Room
-            </a>
+            <a class="nav-link" id="step1" href="grid.php">Step 1: Select Room</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'extras.php' ? 'active' : 'disabled' ?>" href="extras.php">
-                Step 2: Choose Extras
-            </a>
+            <a class="nav-link" id="step2" href="extras.php">Step 2: Choose Extras</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'UserAcc.php' ? 'active' : 'disabled' ?>" href="UserAcc.php">
-                Step 3: Review & Reserve
-            </a>
+            <a class="nav-link" id="step3" href="UserAcc.php">Step 3: Review & Reserve</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'receipt.php' ? 'active' : 'disabled' ?>" href="receipt.php">
-                Step 4: Get Receipt
-            </a>
+            <a class="nav-link" id="step4" href="receipt.php">Step 4: Get Receipt</a>
         </li>
     </ul>
 </div>
+
 
 
     <div class="container mt-4">
@@ -176,8 +173,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
 
-        <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
-            <div class="mb-2">
+        <form id="accommodationForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light">
+        <div class="mb-2">
                 <label for="reservation_date" class="form-label">Reservation Date:</label>
                 <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
             </div>
@@ -216,5 +213,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
         </form>
     </div>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    // ✅ Define Progress Based on the Current Page
+    let progress = 0;
+    let currentPage = window.location.pathname.split("/").pop();
+
+    if (currentPage === "grid.php") {
+        progress = 25;
+        document.getElementById("step1").classList.add("active");
+    } else if (currentPage === "extras.php") {
+        progress = 50;
+        document.getElementById("step2").classList.add("active");
+    } else if (currentPage === "UserAcc.php") {
+        progress = 75;
+        document.getElementById("step3").classList.add("active");
+    } else if (currentPage === "receipt.php") {
+        progress = 100;
+        document.getElementById("step4").classList.add("active");
+    }
+
+    // ✅ Animate Progress Bar
+    document.getElementById("progressBar").style.width = progress + "%";
+});
+</script>
+
 </body>
 </html>
