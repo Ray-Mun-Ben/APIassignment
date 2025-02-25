@@ -6,13 +6,13 @@
     100% { background-position: 0% 50%; }
 }
 
+/* ✅ Light Blue Gradient Background */
 body {
-    background: linear-gradient(135deg, #4b6cb7, #182848, #253a64);
-    background-size: 300% 300%;
-    animation: animatedBackground 15s infinite alternate ease-in-out;
-    background-attachment: fixed;
-    color: white;
+    background: linear-gradient(to right, #c3eaff, #88c4ff, #5a9bff);
+    background-attachment: fixed; /* ✅ Keeps it smooth when scrolling */
+    color: #333; /* ✅ Ensures text is readable */
 }
+
 
 
 

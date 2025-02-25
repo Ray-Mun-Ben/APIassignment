@@ -106,9 +106,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
                     <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
                     <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
                     <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
-                    <form method="POST" action="">
-                        <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
-                    </form>
+                    <a href="logout.php" class="btn btn-danger">Sign Out</a>
+
                 </li>
             </ul>
         </div>

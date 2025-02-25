@@ -6,6 +6,10 @@ require_once 'Accommodation.php';
 require_once 'Reservation.php';
 
 session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
 
 $database = new Database();
 $pdo = $database->connect();
@@ -22,13 +26,26 @@ if (!$user_id) {
 }
 
 // ✅ Fetch user details
-$user_details = $user->getUserById($user_id);
+$user_details = $user->getUserById($user_id) ?? ['name' => 'N/A', 'email' => 'N/A'];
 
 // ✅ Fetch the latest accommodation details
-$accommodation_details = $accommodation->getLatestAccommodation($user_id);
+$accommodation_details = $accommodation->getLatestAccommodation($user_id) ?? [
+    'room_type' => 'Not Selected',
+    'room_price' => 0,
+    'days' => 0,
+    'wifi' => 0,
+    'breakfast' => 0,
+    'pool' => 0,
+    'reservation_date' => 'Not Set'
+];
 
 // ✅ Fetch the latest extras details
-$extras_details = $extras->getUserExtras($user_id);
+$extras_details = $extras->getUserExtras($user_id) ?? [
+    'meal_plan' => 'None',
+    'meal_plan_price' => 0,
+    'gym_activity' => 'None',
+    'gym_activity_price' => 0
+];
 
 // ✅ Fetch the most recent reservation for the user
 $reservation = $reservationObj->getLatestReservation($user_id);
@@ -39,9 +56,8 @@ $reservationSuccess = false;
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
     // Always create a new reservation instead of updating
     $reservationObj->createReservation($user_id, $accommodation_details, $extras_details);
+    $reservationSuccess = true;
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -55,28 +71,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
-                    <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
-                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
-                    <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
-                        <form method="POST" action="">
-                            <button type="submit" name="sign_out" class="btn btn-danger">Sign Out</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="index.php">Feel Fresh Resort</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
+                <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
+                <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
+                <a href="logout.php" class="btn btn-danger">Sign Out</a>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
-<!-- ✅ Progress Tracker (Place at the Top Below Navbar) -->
-<!-- ✅ Animated Progress Tracker -->
+<!-- ✅ Progress Tracker -->
 <div class="container mt-3">
     <div class="progress-container">
         <div class="progress-bar" id="progressBar"></div>
@@ -97,7 +109,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
     </ul>
 </div>
 
-
 <div class="container mt-5">
     <div class="card shadow p-4">
         <h2 class="text-center">Booking Summary</h2>
@@ -107,33 +118,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
                 Your reservation has been successfully made!
             </div>
         <?php endif; ?>
+
         <div class="row mt-4">
-    <div class="col-md-6">
-        <h4>Reservation Status</h4>
-        <?php if ($reservationStatus === 'accepted'): ?>
-            <p class="text-success"><strong>Status:</strong> Reservation Accepted</p>
-        <?php elseif ($reservationStatus === 'rejected'): ?>
-            <p class="text-danger"><strong>Status:</strong> Reservation Rejected</p>
-        <?php elseif ($reservationStatus === 'pending'): ?>
-            <p class="text-warning"><strong>Status:</strong> Reservation Pending</p>
-        <?php else: ?>
-            <p class="text-secondary"><strong>Status:</strong> No Reservation Made</p>
-        <?php endif; ?>
-    </div>
-</div>
+            <div class="col-md-6">
+                <h4>Reservation Status</h4>
+                <p class="<?= ($reservationStatus === 'accepted') ? 'text-success' : (($reservationStatus === 'rejected') ? 'text-danger' : 'text-warning') ?>">
+                    <strong>Status:</strong> <?= ucfirst($reservationStatus) ?>
+                </p>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-md-6">
                 <h4>User Details</h4>
-                <p><strong>Username:</strong> <?= htmlspecialchars($user_details['name'] ?? 'N/A') ?></p>
-                <p><strong>Email:</strong> <?= htmlspecialchars($user_details['email'] ?? 'N/A') ?></p>
+                <p><strong>Username:</strong> <?= htmlspecialchars($user_details['name']) ?></p>
+                <p><strong>Email:</strong> <?= htmlspecialchars($user_details['email']) ?></p>
             </div>
             <div class="col-md-6">
                 <h4>Accommodation Details</h4>
-                <p><strong>Room Type:</strong> <?= htmlspecialchars($accommodation_details['room_type'] ?? 'N/A') ?></p>
-                <p><strong>Room Price Per Night:</strong> <?= isset($accommodation_details['room_price']) ? "$" . htmlspecialchars($accommodation_details['room_price']) : '-' ?></p>
-                <p><strong>Number of Days:</strong> <?= htmlspecialchars($accommodation_details['days'] ?? 'N/A') ?></p>
-                <p><strong>Total Room Cost:</strong> <?= isset($accommodation_details['room_price']) ? "$" . ($accommodation_details['room_price'] * ($accommodation_details['days'] ?? 1)) : '-' ?></p>
+                <p><strong>Room Type:</strong> <?= htmlspecialchars($accommodation_details['room_type']) ?></p>
+                <p><strong>Room Price Per Night:</strong> $<?= htmlspecialchars($accommodation_details['room_price']) ?></p>
+                <p><strong>Number of Days:</strong> <?= htmlspecialchars($accommodation_details['days']) ?></p>
+                <p><strong>Total Room Cost:</strong> $<?= htmlspecialchars($accommodation_details['room_price'] * $accommodation_details['days']) ?></p>
                 <p><strong>WiFi Access:</strong> <?= $accommodation_details['wifi'] ? 'Yes' : 'No' ?></p>
                 <p><strong>Breakfast Included:</strong> <?= $accommodation_details['breakfast'] ? 'Yes' : 'No' ?></p>
                 <p><strong>Pool Access:</strong> <?= $accommodation_details['pool'] ? 'Yes' : 'No' ?></p>
@@ -144,41 +150,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
         <div class="row mt-4">
             <div class="col-md-6">
                 <h4>Extras Selected</h4>
-                <?php if ($extras_details): ?>
-                    <p><strong>Meal Plan:</strong> <?= htmlspecialchars($extras_details['meal_plan'] ?? 'N/A') ?></p>
-                    <p><strong>Meal Plan Price:</strong> <?= isset($extras_details['meal_plan_price']) ? "$" . htmlspecialchars($extras_details['meal_plan_price']) : '-' ?></p>
-                    <p><strong>Gym Activities:</strong> <?= htmlspecialchars($extras_details['gym_activity'] ?? 'N/A') ?></p>
-                    <p><strong>Gym Activity Price:</strong> <?= isset($extras_details['gym_activity_price']) ? "$" . htmlspecialchars($extras_details['gym_activity_price']) : '-' ?></p>
-                <?php else: ?>
-                    <p class="text-danger">No extras selected.</p>
-                <?php endif; ?>
+                <p><strong>Meal Plan:</strong> <?= htmlspecialchars($extras_details['meal_plan']) ?></p>
+                <p><strong>Meal Plan Price:</strong> $<?= htmlspecialchars($extras_details['meal_plan_price']) ?></p>
+                <p><strong>Gym Activities:</strong> <?= htmlspecialchars($extras_details['gym_activity']) ?></p>
+                <p><strong>Gym Activity Price:</strong> $<?= htmlspecialchars($extras_details['gym_activity_price']) ?></p>
             </div>
         </div>
 
         <div class="text-center mt-4">
-    <form method="POST">
-        <button type="submit" name="reserve" class="btn btn-warning">
-            <?= $reservation ? "Update Reservation" : "Reserve" ?>
-        </button>
-    </form>
+            <form method="POST">
+                <button type="submit" name="reserve" class="btn btn-warning">
+                    <?= $reservation ? "Update Reservation" : "Reserve" ?>
+                </button>
+            </form>
 
-    <a href="receipt.php" class="btn btn-success mt-2">Proceed to Receipt</a>
-    
-    <!-- ✅ Refresh Button (Uses JavaScript) -->
-    <button class="btn btn-info mt-2" onclick="refreshPage()">Refresh</button>
-</div>
-
-<script>
-    function refreshPage() {
-        window.location.href = window.location.pathname; // Reloads without resubmitting form
-    }
-</script>
+            <a href="receipt.php" class="btn btn-success mt-2">Proceed to Receipt</a>
+            
+            <!-- ✅ Refresh Button -->
+            <button class="btn btn-info mt-2" onclick="refreshPage()">Refresh</button>
+        </div>
 
     </div>
 </div>
 
-<script src="progress.js"></script>
+<script>
+    function refreshPage() {
+        window.location.href = window.location.pathname;
+    }
+</script>
 
+<script src="progress.js"></script>
 
 </body>
 </html>

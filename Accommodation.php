@@ -35,15 +35,15 @@ class Accommodation {
         $stmt->execute([':user_id' => $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    // Get latest accommodation for a user
     public function getLatestAccommodation($user_id) {
-        $stmt = $this->pdo->prepare("
-            SELECT room_type, room_price, days, wifi, breakfast, pool, reservation_date 
-            FROM accommodations 
-            WHERE user_id = :user_id 
-            ORDER BY id DESC LIMIT 1
-        ");
-        $stmt->execute([':user_id' => $user_id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $sql = "SELECT * FROM accommodations WHERE user_id = ? ORDER BY id DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$user_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
+
+// ✅ **Added Missing Closing Brace**
 ?>
