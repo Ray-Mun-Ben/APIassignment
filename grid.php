@@ -9,6 +9,7 @@ require_once 'database.php';
 require_once 'User.php';
 require_once 'Accommodation.php';
 
+// ✅ Initialize Database
 $database = new Database();
 $pdo = $database->connect();
 
@@ -17,15 +18,23 @@ $accommodation = new Accommodation($pdo);
 
 $user_id = $_SESSION['user_id'];
 
+// ✅ Fetch Seasonal Rate Set by Admin
+$rateStmt = $pdo->query("SELECT seasonal_rate FROM admin_settings LIMIT 1");
+$rateRow = $rateStmt->fetch(PDO::FETCH_ASSOC);
+$seasonalRate = $rateRow ? (float)$rateRow['seasonal_rate'] : 1.0;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // ✅ Prevent Undefined Index Errors
-    $room_type = isset($_POST['room_type']) ? $_POST['room_type'] : '';
-    $room_price = isset($_POST['room_price']) ? $_POST['room_price'] : 0;
-    $days = isset($_POST['days']) ? $_POST['days'] : 1;
+    $room_type = $_POST['room_type'] ?? '';
+    $room_price = $_POST['room_price'] ?? 0;
+    $days = $_POST['days'] ?? 1;
     $wifi = isset($_POST['wifi']) ? 1 : 0;
     $breakfast = isset($_POST['breakfast']) ? 1 : 0;
     $pool = isset($_POST['pool']) ? 1 : 0;
-    $reservation_date = isset($_POST['reservation_date']) ? $_POST['reservation_date'] : '';
+    $reservation_date = $_POST['reservation_date'] ?? '';
+
+    // ✅ Apply Seasonal Rate Adjustment
+    $room_price *= $seasonalRate;
 
     if (!empty($room_type) && !empty($reservation_date)) {
         $accommodation->saveAccommodation($user_id, $room_type, $room_price, $days, $wifi, $breakfast, $pool, $reservation_date);
@@ -60,7 +69,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
                 <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
             </ul>
-            <!-- ✅ Move Sign Out Button Here -->
             <form method="POST" action="logout.php" class="d-flex ms-3">
                 <button type="submit" class="btn btn-danger">Sign Out</button>
             </form>
@@ -79,6 +87,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <li class="nav-item"><a class="nav-link" id="step3" href="UserAcc.php">Step 3: Review & Reserve</a></li>
         <li class="nav-item"><a class="nav-link" id="step4" href="receipt.php">Step 4: Get Receipt</a></li>
     </ul>
+</div>
+
+<!-- ✅ Seasonal Rate Notice -->
+<div class="container mt-3">
+    <div class="alert alert-info text-center">
+        Seasonal Pricing Applied: <strong>x<?= number_format($seasonalRate, 2) ?></strong> on room prices.
+    </div>
 </div>
 
 <!-- ✅ Accommodation Selection -->
@@ -116,103 +131,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <!-- ✅ Accommodation Form -->
-    
     <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
-    <div class="mb-2">
-        <label for="reservation_date" class="form-label">Reservation Date:</label>
-        <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
-    </div>
+        <div class="mb-2">
+            <label for="reservation_date" class="form-label">Reservation Date:</label>
+            <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
+        </div>
 
-    <div class="mb-2">
-        <label for="room_type" class="form-label">Room Type:</label>
-        <select id="room_type" name="room_type" class="form-select">
-            <option value="standard" data-price="50">Standard ($50 per night, Max 10 days)</option>
-            <option value="deluxe" data-price="100">Deluxe ($100 per night, Max 20 days)</option>
-            <option value="suite" data-price="150">Suite ($150 per night, Max 28 days)</option>
-        </select>
-    </div>
+        <div class="mb-2">
+            <label for="room_type" class="form-label">Room Type:</label>
+            <select id="room_type" name="room_type" class="form-select">
+                <option value="standard" data-price="50">Standard ($50 per night, Max 10 days)</option>
+                <option value="deluxe" data-price="100">Deluxe ($100 per night, Max 20 days)</option>
+                <option value="suite" data-price="150">Suite ($150 per night, Max 28 days)</option>
+            </select>
+        </div>
 
-    <input type="hidden" id="room_price" name="room_price" value="50">
+        <input type="hidden" id="room_price" name="room_price" value="50">
 
-    <div class="mb-2">
-        <label for="days" class="form-label">Number of Days:</label>
-        <input type="number" id="days" name="days" class="form-control" min="1" value="1" required>
-    </div>
+        <div class="text-end fw-bold mt-3">
+            <h5>Total: <span id="totalPrice">$50.00</span></h5>
+        </div>
 
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="wifi" name="wifi" data-price="10">
-        <label class="form-check-label" for="wifi">WiFi ($10)</label>
-    </div>
+        <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
+    </form>
+</div>
 
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="breakfast" name="breakfast" data-price="15">
-        <label class="form-check-label" for="breakfast">Breakfast ($15)</label>
-    </div>
-
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="pool" name="pool" data-price="20">
-        <label class="form-check-label" for="pool">Pool Access ($20)</label>
-    </div>
-
-    <div class="text-end fw-bold mt-3">
-        <h5>Total: <span id="totalPrice">$50.00</span></h5>
-    </div>
-
-    <button type="submit" class="btn btn-primary mt-3">Save Accommodation</button>
-</form>
-
-<!-- ✅ Place JavaScript at the Bottom to Ensure It Runs After Page Loads -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     function updateTotal() {
         let total = 0;
         const roomSelect = document.getElementById('room_type');
         const daysInput = document.getElementById('days');
+        const seasonalRate = <?= $seasonalRate ?>;
         const totalPriceDisplay = document.getElementById('totalPrice');
 
-        if (!roomSelect || !daysInput || !totalPriceDisplay) {
-            console.error("Missing elements for total calculation!");
-            return;
-        }
-
         const selectedOption = roomSelect.options[roomSelect.selectedIndex];
-        const roomPrice = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+        const roomPrice = parseFloat(selectedOption.getAttribute('data-price')) * seasonalRate;
         const days = parseInt(daysInput.value) || 1;
 
         total += roomPrice * days;
-
-        document.querySelectorAll('input[type=checkbox]:checked').forEach(el => {
-            total += (parseFloat(el.dataset.price) || 0) * days;
-        });
-
         totalPriceDisplay.textContent = '$' + total.toFixed(2);
     }
 
-    function updateRoomDetails() {
-        const roomSelect = document.getElementById('room_type');
-        const daysInput = document.getElementById('days');
-
-        let maxDays = 10;
-        if (roomSelect.value === "deluxe") {
-            maxDays = 20;
-        } else if (roomSelect.value === "suite") {
-            maxDays = 28;
-        }
-
-        daysInput.max = maxDays;
-        if (parseInt(daysInput.value) > maxDays) {
-            daysInput.value = maxDays;
-        }
-
-        updateTotal();
-    }
-
-    document.getElementById("room_type").addEventListener("change", updateRoomDetails);
+    document.getElementById("room_type").addEventListener("change", updateTotal);
     document.getElementById("days").addEventListener("input", updateTotal);
-    document.querySelectorAll("input[type=checkbox]").forEach(el => {
-        el.addEventListener("change", updateTotal);
-    });
-
-    updateRoomDetails();
+    updateTotal();
 });
 </script>
+
+</body>
+</html>
