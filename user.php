@@ -100,17 +100,11 @@ class User {
         return false;
     }
 
-    public function updatePassword($userId, $newPassword)
-{
-    $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
-    $stmt = $this->pdo->prepare("UPDATE users SET password_hash = :password_hash WHERE id = :user_id");
-    $stmt->execute([
-        ':password_hash' => $passwordHash,
-        ':user_id' => $userId
-    ]);
+    public function updatePassword($userId, $newPasswordHash) {
+        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = ?, reset_token = NULL, reset_expires_at = NULL WHERE id = ?");
+        return $stmt->execute([$newPasswordHash, $userId]);
+    }
     
-    return $stmt->rowCount() > 0;
-}
 
     
 
@@ -187,6 +181,47 @@ public function shouldBanUser($userId) {
 public function banUser($userId) {
     $stmt = $this->pdo->prepare("UPDATE users SET status = 'banned' WHERE id = ?");
     $stmt->execute([$userId]);
+}
+
+public function storePasswordResetToken($userId, $token, $expiresAt) {
+    $stmt = $this->pdo->prepare("UPDATE users SET reset_token = ?, reset_expires_at = ? WHERE id = ?");
+    return $stmt->execute([$token, $expiresAt, $userId]);
+}
+
+public function verifyPasswordResetToken($token) {
+    $stmt = $this->pdo->prepare("SELECT id, email, reset_expires_at FROM users WHERE reset_token = ? AND reset_expires_at > NOW() LIMIT 1");
+    $stmt->execute([$token]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
+        echo "✅ Found valid token for: " . $user['email'] . " (Expires: " . $user['reset_expires_at'] . ")<br>";
+        return $user;
+    } else {
+        echo "❌ Invalid or expired token!<br>";
+        return null;
+    }
+}
+
+
+
+public function invalidateResetToken($token) {
+    $stmt = $this->pdo->prepare("UPDATE users SET reset_token = NULL, reset_expires_at = NULL WHERE reset_token = ?");
+    return $stmt->execute([$token]);
+}
+
+public function savePasswordResetToken($email, $token) {
+    $expiry = date('Y-m-d H:i:s', strtotime('+15 minutes')); // Token expires in 15 mins
+
+    // Ensure you're updating the correct user by email
+    $stmt = $this->pdo->prepare("UPDATE users SET reset_token = ?, reset_expires_at = ? WHERE email = ?");
+    $stmt->execute([$token, $expiry, $email]);
+
+    // Debugging
+    if ($stmt->rowCount() > 0) {
+        echo "✅ Token saved for: $email (Expires: $expiry)<br>";
+    } else {
+        echo "❌ Failed to save token. No matching email found.<br>";
+    }
 }
 
 

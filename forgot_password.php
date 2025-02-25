@@ -1,8 +1,8 @@
 <?php
 session_start();
 require_once 'database.php';
-require_once 'user.php';
-require_once 'mailer.php';
+require_once 'User.php';
+require_once 'MailerClass.php'; // ✅ Include the updated mailer
 
 $error = "";
 $success = "";
@@ -16,22 +16,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $database = new Database();
         $pdo = $database->connect();
         $user = new User($pdo);
+        $mailer = new Mailer(); // ✅ Use Mailer Class
 
         if ($user->emailExists($email)) {
-            $userId = $user->getUserIdByEmail($email);
-
-            // Generate a reset code and save it in the database
-            $resetCode = bin2hex(random_bytes(16)); // Generate a secure random code
+            $user->savePasswordResetToken($email, $resetCode);
+            $resetCode = bin2hex(random_bytes(16)); // ✅ Secure token
             $user->saveOTP($userId, $resetCode);
 
-            // Create the reset link
+            // ✅ Create reset link
             $resetLink = "http://localhost/assignment/reset_password.php?email=$email&code=$resetCode";
 
-            // Send the reset link via email
-            if (send2FACode($email, "Click the following link to reset your password: $resetLink")) {
+            // ✅ Send reset email
+            if ($mailer->sendPasswordReset($email, $resetLink)) {
                 $success = "A password reset link has been sent to your email.";
             } else {
-                $error = "Failed to send the reset link. Please try again.";
+                $error = "Failed to send reset link.";
             }
         } else {
             $error = "No account found with this email.";
@@ -40,11 +39,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!-- HTML Form -->
-<form method="POST" action="">
-    <label for="email">Enter your email address:</label>
-    <input type="email" name="email" required>
-    <button type="submit">Send Reset Link</button>
-</form>
-<?php if ($error): ?><p style="color: red;"><?php echo $error; ?></p><?php endif; ?>
-<?php if ($success): ?><p style="color: green;"><?php echo $success; ?></p><?php endif; ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Forgot Password</h2>
+
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+        <?php elseif (!empty($success)): ?>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
+        <?php endif; ?>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label for="email" class="form-label">Enter your email:</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Send Reset Link</button>
+        </form>
+    </div>
+</body>
+</html>

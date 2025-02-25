@@ -4,6 +4,10 @@ require_once 'vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+require_once 'vendor/autoload.php';
+
+
+
 class Mailer {
     private $mail;
 
@@ -17,17 +21,18 @@ class Mailer {
             $this->mail->isSMTP();
             $this->mail->Host = 'smtp.gmail.com';
             $this->mail->SMTPAuth = true;
-            $this->mail->Username = 'raymond.mungai@strathmore.edu'; // Replace with your email
-            $this->mail->Password = 'avhw lrmj piyo vakz'; // Use your app password
+            $this->mail->Username = 'raymond.mungai@strathmore.edu'; // Your email
+            $this->mail->Password = 'avhw lrmj piyo vakz'; // App-specific password
             $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $this->mail->Port = 465;
-            $this->mail->setFrom('raymond.mungai@strathmore.edu', 'Feel Fresh Resort');
+
+            // ✅ Use valid sender address
+            $this->mail->setFrom('raymond.mungai@strathmore.edu', 'Feel Fresh Resort', false);
         } catch (Exception $e) {
             throw new Exception("Mailer setup failed: " . $this->mail->ErrorInfo);
         }
     }
 
-    // General email sending method
     public function sendMail($recipientEmail, $subject, $message) {
         if (empty($recipientEmail) || !filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
             throw new Exception("Invalid recipient email address.");
@@ -39,7 +44,12 @@ class Mailer {
             $this->mail->isHTML(true);
             $this->mail->Subject = $subject;
             $this->mail->Body = $message;
-            $this->mail->AltBody = strip_tags($message);
+            $this->mail->AltBody = "If you can't view this email, your reset link is: $message";
+
+            // ✅ Enable debugging for logs
+            $this->mail->SMTPDebug = 2;
+            $this->mail->Debugoutput = 'html';
+
             $this->mail->send();
             return true;
         } catch (Exception $e) {
@@ -47,26 +57,17 @@ class Mailer {
         }
     }
 
-    // Method for sending 2FA codes
     public function send2FACode($recipientEmail, $code) {
         $subject = "Your 2FA Code";
         $message = "Your 2FA code is: <strong>$code</strong>";
         return $this->sendMail($recipientEmail, $subject, $message);
     }
 
-    // Method for sending reservation acceptance email
-    public function sendReservationAcceptance($recipientEmail, $username) {
-        $subject = "Your Reservation Has Been Accepted!";
-        $message = "
-            Dear $username,<br><br>
-            Your reservation at <strong>Feel Fresh Resort</strong> has been successfully accepted!<br>
-            Please make full payment within **5 hours** to secure your booking.<br>
-            Failure to pay on time will result in automatic cancellation.<br><br>
-            **Repeated non-payments will result in a ban.**<br>
-            Kindly make your payment at the reception or via online transfer.<br><br>
-            Best regards,<br>
-            <strong>Feel Fresh Resort Team</strong>
-        ";
+    public function sendPasswordReset($recipientEmail, $resetLink) {
+        $subject = "Password Reset Request";
+        $message = "Click the following link to reset your password: <a href='$resetLink'>$resetLink</a>";
         return $this->sendMail($recipientEmail, $subject, $message);
     }
 }
+
+?>
