@@ -19,26 +19,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mailer = new Mailer(); // ✅ Use Mailer Class
 
         if ($user->emailExists($email)) {
-            $user->savePasswordResetToken($email, $resetCode);
-            $resetCode = bin2hex(random_bytes(16)); // ✅ Secure token
-            $user->saveOTP($userId, $resetCode);
-
-            // ✅ Create reset link
-            $resetLink = "http://localhost/assignment/reset_password.php?email=$email&code=$resetCode";
-
-            // ✅ Send reset email
-            if ($mailer->sendPasswordReset($email, $resetLink)) {
+            $resetCode = bin2hex(random_bytes(16)); // ✅ Generate reset token FIRST
+            $user->savePasswordResetToken($email, $resetCode); // ✅ Save token
+        
+            // Send reset email
+            if ($mailer->sendMail($email, "Password Reset", "Click the link to reset: http://localhost/assignment/reset_password.php?token=$resetCode")) {
                 $success = "A password reset link has been sent to your email.";
             } else {
-                $error = "Failed to send reset link.";
+                $error = "Failed to send the reset link. Please try again.";
             }
         } else {
-            $error = "No account found with this email.";
+            $error = "No account found with this email."; // ✅ Handle non-existing emails
         }
-    }
+    } // ✅ Properly close the `if ($_SERVER['REQUEST_METHOD'] === 'POST')`
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">

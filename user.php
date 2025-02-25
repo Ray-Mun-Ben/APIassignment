@@ -1,5 +1,6 @@
 <?php
 require_once 'database.php';
+date_default_timezone_set('Africa/Nairobi');
 
 class User {
     private $pdo;
@@ -189,18 +190,16 @@ public function storePasswordResetToken($userId, $token, $expiresAt) {
 }
 
 public function verifyPasswordResetToken($token) {
-    $stmt = $this->pdo->prepare("SELECT id, email, reset_expires_at FROM users WHERE reset_token = ? AND reset_expires_at > NOW() LIMIT 1");
+    $stmt = $this->pdo->prepare("SELECT id, email, reset_expires_at FROM users WHERE reset_token = ?");
     $stmt->execute([$token]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
-        echo "✅ Found valid token for: " . $user['email'] . " (Expires: " . $user['reset_expires_at'] . ")<br>";
-        return $user;
-    } else {
-        echo "❌ Invalid or expired token!<br>";
-        return null;
+    if ($user && strtotime($user['reset_expires_at']) > time()) {
+        return $user; // ✅ Token is valid
     }
+    return false; // ❌ Invalid or expired token
 }
+
 
 
 
@@ -209,20 +208,12 @@ public function invalidateResetToken($token) {
     return $stmt->execute([$token]);
 }
 
-public function savePasswordResetToken($email, $token) {
-    $expiry = date('Y-m-d H:i:s', strtotime('+15 minutes')); // Token expires in 15 mins
-
-    // Ensure you're updating the correct user by email
+public function savePasswordResetToken($email, $resetToken) {
+    $expiresAt = date("Y-m-d H:i:s", strtotime("+1 hour")); // ✅ Expires in 1 hour
     $stmt = $this->pdo->prepare("UPDATE users SET reset_token = ?, reset_expires_at = ? WHERE email = ?");
-    $stmt->execute([$token, $expiry, $email]);
-
-    // Debugging
-    if ($stmt->rowCount() > 0) {
-        echo "✅ Token saved for: $email (Expires: $expiry)<br>";
-    } else {
-        echo "❌ Failed to save token. No matching email found.<br>";
-    }
+    return $stmt->execute([$resetToken, $expiresAt, $email]);
 }
+
 
 
 

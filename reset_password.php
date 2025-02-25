@@ -24,28 +24,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = new User($pdo);
 
         // Verify token
-        $userData = $user->verifyPasswordResetToken($token);
-        
-        if ($userData) {
-            $userId = $userData['id'];
-            
-            // Check if token is expired (assuming `expires_at` column exists)
-            if (strtotime($userData['expires_at']) < time()) {
-                $error = "Reset token has expired. Request a new one.";
-            } else {
-                $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
-                if ($user->updatePassword($userId, $newPasswordHash)) {
-                    $success = "Password reset successfully. <a href='login.php'>Login</a>";
-                    
-                    // Invalidate the token after successful password reset
-                    $user->invalidateResetToken($token);
-                } else {
-                    $error = "Failed to update password.";
-                }
-            }
+        // Fetch user data from the database
+$userData = $user->verifyPasswordResetToken($token);
+
+if ($userData) {
+    $expiresAt = $userData['reset_expires_at'] ?? null; // Correct column name
+
+    if ($expiresAt === null) {
+        $error = "Invalid or expired reset token.";
+    } elseif (strtotime($expiresAt) < time()) { 
+        $error = "Your reset link has expired.";
+    } else {
+        $userId = $userData['id'];
+        $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        if ($user->updatePassword($userId, $newPasswordHash)) {
+            $success = "Password reset successfully. <a href='login.php'>Login</a>";
         } else {
-            $error = "Invalid or expired reset token.";
+            $error = "Failed to update password.";
         }
+    }
+} else {
+    $error = "Invalid or expired reset token.";
+}
+
     }
 }
 ?>
