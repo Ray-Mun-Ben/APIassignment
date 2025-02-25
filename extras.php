@@ -88,6 +88,7 @@ $extrasSaved = true; // Indicate that extras were saved successfully.
 </div>
 
 
+
     <div class="container mt-5">
         <h2 class="text-center">Select Your Extras</h2>
 
@@ -189,7 +190,8 @@ $extrasSaved = true; // Indicate that extras were saved successfully.
 
         document.addEventListener("DOMContentLoaded", updateTotal);
     </script>
-      
+     <script src="progress.js"></script>
+     
 
 </body>
 </html>
