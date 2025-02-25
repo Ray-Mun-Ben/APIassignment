@@ -192,24 +192,43 @@ if (!$extraData) {
 
 <!-- ✅ JavaScript -->
 <script>
+document.addEventListener("DOMContentLoaded", function () {
     function updateTotal() {
         let total = 0;
-        document.querySelectorAll('input[type=checkbox]:checked, select').forEach(el => {
-            if (el.type === 'checkbox' && el.checked) {
-                total += parseFloat(el.dataset.price);
-            } else if (el.tagName === 'SELECT' && el.value !== 'None') {
-                total += parseFloat(el.dataset.price);
-            }
+
+        // ✅ Get meal plan price
+        const mealPlanSelect = document.getElementById('meal_plan');
+        const selectedMealOption = mealPlanSelect.options[mealPlanSelect.selectedIndex];
+        const mealPrice = parseFloat(selectedMealOption.getAttribute('data-price')) || 0;
+        total += mealPrice;
+
+        // ✅ Get gym activities price
+        const gymActivityCheckboxes = document.querySelectorAll('input[name="gym_activities[]"]:checked');
+        gymActivityCheckboxes.forEach(box => {
+            total += parseFloat(box.dataset.price) || 0;
         });
+
+        // ✅ Get gym access price (if checked)
+        const gymAccessCheckbox = document.getElementById('gym_access');
+        if (gymAccessCheckbox.checked) {
+            total += parseFloat(gymAccessCheckbox.dataset.price) || 0;
+        }
+
+        // ✅ Display the updated total
         document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
     }
 
-    document.querySelectorAll('input[type=checkbox], select').forEach(el => {
+    // ✅ Event Listeners
+    document.getElementById('meal_plan').addEventListener('change', updateTotal);
+    document.querySelectorAll('input[type=checkbox]').forEach(el => {
         el.addEventListener('change', updateTotal);
     });
 
-    document.addEventListener("DOMContentLoaded", updateTotal);
+    // ✅ Initial Calculation on Load
+    updateTotal();
+});
 </script>
+
 
 <script src="progress.js"></script>
 

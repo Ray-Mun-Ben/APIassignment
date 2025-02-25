@@ -2,24 +2,26 @@
 session_start();
 require_once 'vendor/autoload.php';
 require_once 'database.php';
-require_once 'user.php';
-require_once 'mailer.php';
+require_once 'User.php';
+require_once 'mailerClass.php'; // ✅ Corrected Mailer Class Filename
 
+// ✅ Initialize Variables
 $errorMessage = "";
 $successMessage = "";
 
-// Generate CSRF Token if it's not set already
+// ✅ Generate CSRF Token if not set
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// ✅ Handle Registration Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'];
     $csrf_token = $_POST['csrf_token'];
 
-    // CSRF Token Validation
+    // ✅ Validate CSRF Token
     if ($csrf_token !== $_SESSION['csrf_token']) {
         $errorMessage = "Invalid CSRF token!";
     } elseif (empty($username) || empty($email) || empty($password)) {
@@ -33,27 +35,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $database = new Database();
             $pdo = $database->connect();
             $user = new User($pdo);
-            
-            // ✅ Check if email is already registered
+            $mailer = new Mailer(); // ✅ Ensure Mailer Class is Loaded
+
+            // ✅ Check if Email Already Exists
             if ($user->userExists($email)) {
                 $errorMessage = "An account with this email already exists.";
             } else {
-                // Register the user and get the user_id
+                // ✅ Register the user and get `user_id`
                 $userId = $user->register($username, $email, $password);
 
                 if ($userId) {
                     $_SESSION['user_id'] = $userId;
 
-                    // ✅ Generate & store 2FA code securely
+                    // ✅ Generate & Store 2FA Code Securely
                     $twoFACode = random_int(100000, 999999);
                     $_SESSION['2fa_code'] = $twoFACode;
                     $_SESSION['email'] = $email;
 
-                    // ✅ Save OTP to the database
+                    // ✅ Save OTP to the Database
                     $user->saveOTP($userId, $twoFACode);
 
-                    // ✅ Send 2FA code via email
-                    if (send2FACode($email, $twoFACode)) {
+                    // ✅ Send 2FA Code via Email
+                    if ($mailer->send2FACode($email, $twoFACode)) {
                         header("Location: verify2fa.php");
                         exit();
                     } else {
@@ -77,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
-
     <script>
         function validatePassword() {
             let password = document.getElementById("password").value;

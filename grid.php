@@ -117,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- ✅ Accommodation Form -->
     
-    <form id="accommodationForm" method="POST" action="extras.php" class="p-3 border rounded shadow-sm bg-light">
+    <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
     <div class="mb-2">
         <label for="reservation_date" class="form-label">Reservation Date:</label>
         <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>

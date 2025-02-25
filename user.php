@@ -214,6 +214,11 @@ public function savePasswordResetToken($email, $resetToken) {
     return $stmt->execute([$resetToken, $expiresAt, $email]);
 }
 
+public function userExists($email) {
+    $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
+    $stmt->execute([':email' => $email]);
+    return $stmt->fetchColumn() > 0; // ✅ Returns TRUE if email exists, otherwise FALSE
+}
 
 
 

@@ -2,11 +2,12 @@
 require_once 'database.php';
 require_once 'Reservation.php';
 require_once 'User.php';
-require_once 'mailerClass.php'; // ✅ Use the correct filename
+require_once 'mailerClass.php'; // ✅ Ensure this is correct
+require_once 'Booking.php'; // ✅ Ensure Booking class is included
 
 session_start();
 
-// Ensure admin is logged in
+// ✅ Ensure Admin is Logged In
 if (!isset($_SESSION['admin_id'])) {
     header("Location: admin_login.php");
     exit();
@@ -15,12 +16,18 @@ if (!isset($_SESSION['admin_id'])) {
 $pdo = (new Database())->getConnection();
 $reservationObj = new Reservation($pdo);
 $userObj = new User($pdo);
-$mailer = new Mailer();
+$mailer = new Mailer(); 
+$bookingObj = new Booking($pdo); 
 
-// Fetch all pending reservations
+// ✅ Fetch all pending reservations (Fix for Undefined Variable)
 $reservations = $reservationObj->getAllPendingReservations();
 
-// Handle reservation approval
+// ✅ Ensure $reservations is always an array
+if (!is_array($reservations)) {
+    $reservations = []; // ✅ Ensure no undefined variable errors
+}
+
+// ✅ Handle reservation approval
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["approve_reservation"])) {
     $reservationId = $_POST["reservation_id"];
     $userId = $_POST["user_id"];
@@ -52,8 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["approve_reservation"]
     }
 }
 
-
-// Handle reservation rejection
+// ✅ Handle reservation rejection
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])) {
     $reservationId = $_POST["reservation_id"];
     $userId = $_POST["user_id"];
@@ -87,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
 </head>
 <body>
 
-<!-- Admin Navbar -->
+<!-- ✅ Admin Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Feel Fresh Resort - Admin</a>
@@ -110,7 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
     </div>
 </nav>
 
-<!-- Reservations Table -->
+<!-- ✅ Reservations Table -->
 <div class="container mt-5">
     <h2>Pending Reservations</h2>
 
@@ -134,28 +140,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["reject_reservation"])
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($reservations as $res) : ?>
-                <tr>
-                    <td><?= htmlspecialchars($res['username']) ?></td>
-                    <td><?= htmlspecialchars($res['email']) ?></td>
-                    <td><?= htmlspecialchars($res['room_type']) ?></td>
-                    <td><?= htmlspecialchars($res['days']) ?></td>
-                    <td><?= htmlspecialchars($res['reservation_date']) ?></td>
-                    <td>
-                        <form method="POST" class="d-inline">
-                            <input type="hidden" name="reservation_id" value="<?= $res['id'] ?>">
-                            <input type="hidden" name="user_id" value="<?= $res['user_id'] ?>">
-                            <button type="submit" name="approve_reservation" class="btn btn-success btn-sm">Accept</button>
-                        </form>
-                        <form method="POST" class="d-inline">
-                            <input type="hidden" name="reservation_id" value="<?= $res['id'] ?>">
-                            <input type="hidden" name="user_id" value="<?= $res['user_id'] ?>">
-                            <button type="submit" name="reject_reservation" class="btn btn-danger btn-sm">Reject</button>
-                        </form>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
+    <?php foreach ($reservations as $res) : ?>
+        <tr>
+            <td><?= htmlspecialchars($res['username'] ?? 'Unknown') ?></td>  <!-- ✅ Fixed key -->
+            <td><?= htmlspecialchars($res['email'] ?? 'No Email') ?></td>
+            <td><?= htmlspecialchars($res['room_type'] ?? 'N/A') ?></td>
+            <td><?= htmlspecialchars($res['days'] ?? 'N/A') ?></td>
+            <td><?= htmlspecialchars($res['reservation_date'] ?? 'N/A') ?></td>
+            <td>
+                <form method="POST" class="d-inline">
+                    <input type="hidden" name="reservation_id" value="<?= htmlspecialchars($res['id']) ?>">
+                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($res['user_id']) ?>">
+                    <button type="submit" name="approve_reservation" class="btn btn-success btn-sm">Accept</button>
+                </form>
+                <form method="POST" class="d-inline">
+                    <input type="hidden" name="reservation_id" value="<?= htmlspecialchars($res['id']) ?>">
+                    <input type="hidden" name="user_id" value="<?= htmlspecialchars($res['user_id']) ?>">
+                    <button type="submit" name="reject_reservation" class="btn btn-danger btn-sm">Reject</button>
+                </form>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
+
+
     </table>
 </div>
 

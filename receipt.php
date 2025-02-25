@@ -16,7 +16,7 @@ if (!$user_id) {
     die("Error: User ID not found in session.");
 }
 
-// ✅ Initialize classes
+// ✅ Initialize objects
 $userObj = new User($pdo);
 $reservationObj = new Reservation($pdo);
 $bookingObj = new Booking($pdo);
@@ -49,6 +49,17 @@ if (!empty($reservation['breakfast'])) $total_cost += ($reservation['breakfast_p
 if (!empty($reservation['pool'])) $total_cost += ($reservation['pool_price'] * $days);
 if (!empty($reservation['meal_plan_price'])) $total_cost += $reservation['meal_plan_price'];
 if (!empty($reservation['gym_activity_price'])) $total_cost += $reservation['gym_activity_price'];
+
+// ✅ Handle "Pay Now" - Marks reservation as booked
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['pay_now'])) {
+    $reservationId = $reservation['id'];
+    if ($reservationObj->markAsBooked($reservationId)) {
+        header("Location: receipt.php?success=Payment successful! Your reservation is now booked.");
+        exit();
+    } else {
+        $error = "Failed to update reservation status.";
+    }
+}
 
 // ✅ Handle confirming a booking
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['confirm_booking'])) {
@@ -90,7 +101,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt</title>
     <link rel="stylesheet" href="styles2.css">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -102,81 +112,57 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['export_pdf'])) {
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
-                    <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
-                    <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
-                    <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
-                    <a href="logout.php" class="btn btn-danger">Sign Out</a>
-
-                </li>
+                <li class="nav-item"><a class="nav-link" href="grid.php">Reservation</a></li>
+                <li class="nav-item"><a class="nav-link" href="extras.php">Extra Amenities</a></li>
+                <li class="nav-item"><a class="nav-link" href="UserAcc.php">User Details</a></li>
+                <li class="nav-item"><a class="nav-link" href="receipt.php">Checkout</a></li>
+                <a href="logout.php" class="btn btn-danger">Sign Out</a>
             </ul>
         </div>
     </div>
 </nav>
-<div class="container mt-3">
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
+
+<div class="container mt-4">
+    <h2 class="text-center">Booking Receipt</h2>
+    <hr>
+
+    <h4>User Details</h4>
+    <p><strong>Username:</strong> <?= htmlspecialchars($user['name']) ?></p>
+    <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
+
+    <h4>Accommodation Details</h4>
+    <table class="table">
+        <tr><th>Feature</th><th>Selected</th><th>Price</th></tr>
+        <tr><td>Room Type</td><td><?= htmlspecialchars($reservation['room_type']) ?></td>
+            <td>$<?= number_format($reservation['room_price'], 2) ?></td></tr>
+        <tr><td>Days</td><td><?= $reservation['days'] ?></td><td>-</td></tr>
+        <tr><td>Reservation Date</td><td><?= htmlspecialchars($reservation['reservation_date']) ?></td><td>-</td></tr>
+    </table>
+
+    <h4>Extras</h4>
+    <table class="table">
+        <tr><th>Feature</th><th>Selected</th><th>Price</th></tr>
+        <tr><td>Meal Plan</td><td><?= htmlspecialchars($reservation['meal_plan']) ?></td>
+            <td><?= $reservation['meal_plan_price'] ? '$' . number_format($reservation['meal_plan_price'], 2) : '-' ?></td></tr>
+        <tr><td>Gym Activities</td><td><?= $gym_activities_display ?></td>
+            <td><?= $reservation['gym_activity_price'] ? '$' . number_format($reservation['gym_activity_price'], 2) : '-' ?></td></tr>
+    </table>
+
+    <h3 class="text-end">Total Cost: $<?= number_format($total_cost, 2) ?></h3>
+    <hr>
+    <p class="text-center">Thank you for choosing our resort!</p>
+
+    <div class="text-center mt-3">
+        <form method="POST">
+            <button type="submit" name="pay_now" class="btn btn-success">Pay Now & Confirm Booking</button>
+            <button type="submit" name="confirm_booking" class="btn btn-warning">Confirm Booking</button>
+            <button type="submit" name="cancel_booking" class="btn btn-danger">Cancel Booking</button>
+            <a href="UserAcc.php" class="btn btn-primary">Modify Reservation</a>
+            <button type="submit" name="export_pdf" class="btn btn-info">Download PDF</button>
+        </form>
     </div>
-    <ul class="nav nav-pills nav-justified mt-2">
-        <li class="nav-item">
-            <a class="nav-link" id="step1" href="grid.php">Step 1: Select Room</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="step2" href="extras.php">Step 2: Choose Extras</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="step3" href="UserAcc.php">Step 3: Review & Reserve</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="step4" href="receipt.php">Step 4: Get Receipt</a>
-        </li>
-    </ul>
 </div>
-    <div class="container mt-4">
-        <h2 class="text-center">Booking Receipt</h2>
-        <hr>
-        <h4>User Details</h4>
-        <p><strong>Username:</strong> <?= htmlspecialchars($user['name']) ?></p>
-        <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
 
-        <h4>Accommodation Details</h4>
-        <table class="table">
-            <tr><th>Feature</th><th>Selected</th><th>Price</th></tr>
-            <tr><td>Room Type</td><td><?= htmlspecialchars($reservation['room_type']) ?></td>
-                <td>$<?= number_format($reservation['room_price'], 2) ?></td></tr>
-            <tr><td>Days</td><td><?= $reservation['days'] ?></td><td>-</td></tr>
-            <tr><td>Reservation Date</td><td><?= htmlspecialchars($reservation['reservation_date']) ?></td><td>-</td></tr>
-            <tr><td>WiFi</td><td><?= $reservation['wifi'] ? 'Yes' : 'No' ?></td>
-                <td><?= $reservation['wifi'] ? '$' . number_format($reservation['wifi_price'] * $reservation['days'], 2) : '-' ?></td></tr>
-            <tr><td>Breakfast</td><td><?= $reservation['breakfast'] ? 'Yes' : 'No' ?></td>
-                <td><?= $reservation['breakfast'] ? '$' . number_format($reservation['breakfast_price'] * $reservation['days'], 2) : '-' ?></td></tr>
-            <tr><td>Pool Access</td><td><?= $reservation['pool'] ? 'Yes' : 'No' ?></td>
-                <td><?= $reservation['pool'] ? '$' . number_format($reservation['pool_price'] * $reservation['days'], 2) : '-' ?></td></tr>
-        </table>
-
-        <h4>Extras</h4>
-        <table class="table">
-            <tr><th>Feature</th><th>Selected</th><th>Price</th></tr>
-            <tr><td>Meal Plan</td><td><?= htmlspecialchars($reservation['meal_plan']) ?></td>
-                <td><?= $reservation['meal_plan_price'] ? '$' . number_format($reservation['meal_plan_price'], 2) : '-' ?></td></tr>
-            <tr><td>Gym Activities</td><td><?= $gym_activities_display ?></td>
-                <td><?= $reservation['gym_activity_price'] ? '$' . number_format($reservation['gym_activity_price'], 2) : '-' ?></td></tr>
-        </table>
-
-        <h3 class="text-end">Total Cost: $<?= number_format($total_cost, 2) ?></h3>
-        <hr>
-        <p class="text-center">Thank you for choosing our resort!</p>
-
-        <div class="text-center mt-3">
-            <form method="POST">
-                <button type="submit" name="confirm_booking" class="btn btn-success">Confirm Booking</button>
-                <button type="submit" name="cancel_booking" class="btn btn-danger">Cancel Booking</button>
-                <a href="UserAcc.php" class="btn btn-warning">Modify Reservation</a>
-                <button type="submit" name="export_pdf" class="btn btn-primary">Download PDF</button>
-            </form>
-        </div>
-    </div>
-    <script src="progress.js"></script>
-
+<script src="progress.js"></script>
 </body>
 </html>

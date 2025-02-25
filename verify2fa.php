@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $userId;
 
             $successMessage = "2FA verified successfully! Redirecting to your dashboard...";
-            header('Location: dashboard.php');
+            header('Location: index.php');
             exit();
         } else {
             $errors[] = "Invalid or expired verification code.";

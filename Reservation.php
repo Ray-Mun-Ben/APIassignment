@@ -72,15 +72,35 @@ class Reservation {
     // ✅ Fetch all pending reservations
     public function getAllPendingReservations() {
         $stmt = $this->pdo->prepare("
-            SELECT r.id, r.user_id, r.room_type, r.days, r.reservation_date, u.username, u.email
+            SELECT 
+                r.id, 
+                r.user_id, 
+                r.room_type, 
+                r.days, 
+                r.reservation_date, 
+                u.username AS username,  -- ✅ Fixed: Using correct column name
+                u.email 
             FROM reservations r
             JOIN users u ON r.user_id = u.id
             WHERE r.status = 'pending'
+            ORDER BY r.id DESC
         ");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
+    
+    
+    
+    public function markAsBooked($reservationId) {
+        $sql = "UPDATE reservations SET status = :status WHERE id = :reservation_id";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([
+            ':status' => 'confirmed', // ✅ Use 'confirmed' if ENUM does not support 'booked'
+            ':reservation_id' => $reservationId
+        ]);
+    }
+    
+    
     // ✅ Fetch reservations by status (pending, accepted, rejected)
     public function getReservationsByStatus($status) {
         $stmt = $this->pdo->prepare("
