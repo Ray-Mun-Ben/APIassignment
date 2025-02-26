@@ -14,6 +14,11 @@ if (!isset($_SESSION['user_id'])) {
 $database = new Database();
 $pdo = $database->connect();
 
+// ✅ Fetch seasonal rate from the admin_settings table
+$rateStmt = $pdo->query("SELECT seasonal_rate FROM admin_settings ORDER BY id DESC LIMIT 1");
+$rateRow = $rateStmt->fetch(PDO::FETCH_ASSOC);
+$seasonalRate = $rateRow ? (float)$rateRow['seasonal_rate'] : 1.00; // Default to 1.0 if not set
+
 $user = new User($pdo);
 $extras = new ExtrasM($pdo);
 $accommodation = new Accommodation($pdo);
@@ -32,12 +37,16 @@ $user_details = $user->getUserById($user_id) ?? ['name' => 'N/A', 'email' => 'N/
 $accommodation_details = $accommodation->getLatestAccommodation($user_id) ?? [
     'room_type' => 'Not Selected',
     'room_price' => 0,
-    'days' => 0,
+    'days' => 1,
     'wifi' => 0,
     'breakfast' => 0,
     'pool' => 0,
     'reservation_date' => 'Not Set'
 ];
+
+// ✅ Debug: Check if accommodation data is fetched properly
+var_dump($accommodation_details); exit();
+
 
 // ✅ Fetch the latest extras details
 $extras_details = $extras->getUserExtras($user_id) ?? [
@@ -139,7 +148,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
                 <p><strong>Room Type:</strong> <?= htmlspecialchars($accommodation_details['room_type']) ?></p>
                 <p><strong>Room Price Per Night:</strong> $<?= htmlspecialchars($accommodation_details['room_price']) ?></p>
                 <p><strong>Number of Days:</strong> <?= htmlspecialchars($accommodation_details['days']) ?></p>
-                <p><strong>Total Room Cost:</strong> $<?= htmlspecialchars($accommodation_details['room_price'] * $accommodation_details['days']) ?></p>
+                <p><strong>Total Room Cost:</strong> 
+    $<?= number_format(($accommodation_details['room_price'] * $accommodation_details['days']) * $seasonalRate, 2) ?>
+</p>
                 <p><strong>WiFi Access:</strong> <?= $accommodation_details['wifi'] ? 'Yes' : 'No' ?></p>
                 <p><strong>Breakfast Included:</strong> <?= $accommodation_details['breakfast'] ? 'Yes' : 'No' ?></p>
                 <p><strong>Pool Access:</strong> <?= $accommodation_details['pool'] ? 'Yes' : 'No' ?></p>
@@ -175,9 +186,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reserve'])) {
 
 <script>
     function refreshPage() {
-        window.location.href = window.location.pathname;
+        window.location.href = "UserAcc.php"; // ✅ Ensures proper refresh
     }
 </script>
+
 
 <script src="progress.js"></script>
 

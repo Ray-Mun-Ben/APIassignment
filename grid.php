@@ -30,12 +30,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $pool = isset($_POST['pool']) ? 1 : 0;
     $reservation_date = $_POST['reservation_date'] ?? '';
 
-    if (!empty($room_type) && !empty($reservation_date)) {
+    $maxDays = 10;
+    if ($room_type === "deluxe") $maxDays = 20;
+    if ($room_type === "suite") $maxDays = 28;
+
+    $errors = [];
+
+    if ($days > $maxDays) {
+        $errors[] = "❌ The $room_type room can only be booked for up to $maxDays days.";
+    }
+
+    $today = date("Y-m-d");
+    if ($reservation_date < $today) {
+        $errors[] = "❌ You cannot select a past date for your reservation.";
+    }
+
+    if (empty($errors)) {
         $accommodation->saveAccommodation($user_id, $room_type, $room_price, $days, $wifi, $breakfast, $pool, $reservation_date);
         header("Location: extras.php");
         exit();
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -123,11 +139,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
     <form id="accommodationForm" method="POST" action="grid.php" class="p-3 border rounded shadow-sm bg-light">
-        <div class="mb-2">
+    
+<div id="errorMessages"></div>
+    
+    <div class="mb-2">
             <label for="reservation_date" class="form-label">Reservation Date:</label>
             <input type="date" id="reservation_date" name="reservation_date" class="form-control" required>
         </div>
-        
+        <?php if (!empty($errors)): ?>
+    <div class="alert alert-danger">
+        <?php foreach ($errors as $error): ?>
+            <?= htmlspecialchars($error) ?><br>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+<div id="errorMessages"></div>
+
         <div class="mb-2">
             <label for="room_type" class="form-label">Room Type:</label>
             <select id="room_type" name="room_type" class="form-select">
@@ -168,11 +195,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!-- ✅ JavaScript for Price Calculation -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    let multiplier = <?= $seasonalRate ?>;
+
     function updateTotal() {
         let total = 0;
-        let multiplier = <?= $seasonalRate ?>;
-        let roomPrice = parseFloat(document.getElementById('room_type').selectedOptions[0].dataset.price) || 0;
-        let days = parseInt(document.getElementById('days').value) || 1;
+        let roomSelect = document.getElementById('room_type');
+        let daysInput = document.getElementById('days');
+        let totalPriceDisplay = document.getElementById('totalPrice');
+
+        let selectedOption = roomSelect.options[roomSelect.selectedIndex];
+        let roomPrice = parseFloat(selectedOption.dataset.price) || 0;
+        let days = parseInt(daysInput.value) || 1;
 
         total += (roomPrice * days) * multiplier;
 
@@ -180,17 +213,76 @@ document.addEventListener("DOMContentLoaded", function () {
             total += parseFloat(el.dataset.price) * days;
         });
 
-        document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+        totalPriceDisplay.textContent = '$' + total.toFixed(2);
     }
 
-    document.getElementById("room_type").addEventListener("change", updateTotal);
+    function validateBooking() {
+        let roomSelect = document.getElementById('room_type');
+        let daysInput = document.getElementById('days');
+        let dateInput = document.getElementById('reservation_date');
+        let errorDiv = document.getElementById('errorMessages');
+        let selectedRoom = roomSelect.value;
+        let selectedDays = parseInt(daysInput.value);
+        let selectedDate = new Date(dateInput.value);
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let maxDays = 10;
+        if (selectedRoom === "deluxe") maxDays = 20;
+        if (selectedRoom === "suite") maxDays = 28;
+
+        let errors = [];
+
+        if (selectedDays > maxDays) {
+            errors.push(`❌ The ${selectedRoom} room can only be booked for up to ${maxDays} days.`);
+        }
+
+        if (selectedDate < today) {
+            errors.push("❌ You cannot select a past date for your reservation.");
+        }
+
+        if (errors.length > 0) {
+            errorDiv.innerHTML = errors.join("<br>");
+            errorDiv.style.color = "red";
+            return false;
+        } else {
+            errorDiv.innerHTML = "";
+            return true;
+        }
+    }
+
+    function updateMaxDays() {
+        let roomSelect = document.getElementById('room_type');
+        let daysInput = document.getElementById('days');
+
+        let maxDays = 10;
+        if (roomSelect.value === "deluxe") maxDays = 20;
+        if (roomSelect.value === "suite") maxDays = 28;
+
+        daysInput.max = maxDays;
+        if (parseInt(daysInput.value) > maxDays) {
+            daysInput.value = maxDays;
+        }
+        updateTotal();
+    }
+
+    document.getElementById("room_type").addEventListener("change", updateMaxDays);
     document.getElementById("days").addEventListener("input", updateTotal);
+    document.getElementById("reservation_date").addEventListener("input", validateBooking);
     document.querySelectorAll("input[type=checkbox]").forEach(el => {
         el.addEventListener("change", updateTotal);
     });
 
-    updateTotal();
+    document.getElementById("accommodationForm").addEventListener("submit", function (e) {
+        if (!validateBooking()) {
+            e.preventDefault();
+        }
+    });
+
+    updateMaxDays();
 });
 </script>
+
+
 </body>
 </html>
